@@ -1,1 +1,7 @@
-자바스크립트 웹 개발자로 일하고 있습니다. mongo DB를 만나며 데이터를 가공하고, 제어하는 것에 관심을 두게 되었습니다.
+---
+permalink: /about/
+title: "About"
+excerpt: "Minimal Mistakes is a flexible two-column Jekyll theme."
+---
+
+자기소개 작성 중

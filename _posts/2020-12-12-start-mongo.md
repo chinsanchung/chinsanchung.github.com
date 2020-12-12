@@ -2,11 +2,12 @@
 title: "Mongo DB 적응기"
 layout: single
 author_profile: false
+read_time: false
 comments: false
 share: true
 related: true
 categories:
-  - Database
+  - database
 toc: true
 toc_sticky: true
 toc_labe: 목차
