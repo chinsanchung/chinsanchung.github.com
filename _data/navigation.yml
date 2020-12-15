@@ -6,5 +6,9 @@ main:
   #   url: https://chinsanchung.github.io/about/
   - title: "Database"
     url: /database/
+  - title: "Kaggle"
+    url: /kaggle/
+  - title: "Web"
+    url: /web/
   - title: "All Posts"
     url: /categories/
