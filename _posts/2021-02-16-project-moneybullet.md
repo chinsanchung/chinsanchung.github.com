@@ -53,8 +53,47 @@ tags:
 
 ### 목록 페이지에서의 데이터 가공
 
-목록 페이지의 데이터는 네 갈래로 나뉩니다. 현재 기간의 데이터, 이전 기간의 매출액, 상위 결제 시간, 그리고 상위 매출 상품(매장)입니다. 처음에는 하나의 aggregate 쿼리문으로 작성하려 했지만, 각 데이터별로 묶을 대상이 너무나 달랐고, 결국 각각 결과값을 구한 후에 합치는 방법을 택했습니다.
+#### 1) 서로 다른 결과를 하나의 aggregate 쿼리문에 합치기
 
+목록 페이지의 데이터는 네 갈래로 나뉩니다. 현재 기간의 데이터(줄여서 현재값이라 부르겠습니다.), 이전 기간의 매출액, 상위 결제 시간, 그리고 상위 매출 상품(매장)입니다. 처음에는 하나의 aggregate 쿼리문으로 작성하려 했지만, 각 영역을 구하는 절차가 서로 달라 결국 결과를 따로 구한 후 합치는 방법을 택했습니다.
+예시로 이전 기간의 매출액과 현재값을 합치는 과정을 코드로 작성하겠습니다.
+
+```javascript
+// $let, $filter 예시 - 매장의 경우
+const previousProfit = "aggregate문으로 구한 이전 기간 매출액";
+const response = await Data.aggregate([
+  // 그룹화는 생략하고 $let, $filter 함수만 보여드리겠습니다.
+  {
+    $addFields: {
+      previousProfit: {
+        $let: {
+          vars: { value: previousProfit },
+          in: "$$value",
+        },
+      },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      previousProfit: {
+        $filter: {
+          input: "$previousProfit",
+          as: "prevVal",
+          cond: {
+            $eq: ["$$prevVal.shopName", "$_id.shopName"],
+          },
+        },
+      },
+    },
+  },
+]);
+```
+
+- `$let`: 외부의 값을 쿼리문에서의 변수로 지정할 수 있습니다. `$addFields`로 외부값 previousProfit를 `previousProfit`변수로 지정했습니다.
+- `$filter`: `$let`으로 저장한 previousProfit 변수를 `input`으로 대입해 `prevVal`으로 임시로 지정하고, cond로 previousProfit의 매장(상품)명과 현재값의 매장(상품)명을 비교해서 서로 일치하는 데이터를 연결할 수 있습니다.
+
+- 각 영역을 구한 방법
 - `$let`, `$filter`
 - aggregate 작성 순서
 
