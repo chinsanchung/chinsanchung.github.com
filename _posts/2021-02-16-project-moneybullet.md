@@ -33,19 +33,16 @@ tags:
 테이블에 결과를 출력하기에 앞서 검색 조건을 지정할 수 있습니다. 기본값은 기간(7일 전 ~ 오늘) / 매출액의 내림차순 / 한 번에 10개의 행을 출력합니다.
 
 - 기간 (1일, 7일, 30일, 90일, 직접 선택) / 기간 + 상품명(최대 2개) / 기간 + 업체명(최대 2개)
-- 매출액 / 가나다 / 상위 결제 시간의 오름차순, 내림차순
+- 매출액 / 매장명 또는 상품명 / 상위 결제 시간의 오름차순, 내림차순
 - 한 번에 출력할 테이블 행의 개수: 10, 30, 50, 100
 
 목록의 컬럼들은 이름, 코드, 현재 기간의 매출액뿐만 아니라, 이전 기간(예시: 14일 전 ~ 7일 전 / 7일 전 ~ 오늘)의 매출액을 표기해서 현재 매출액과 비교할 수 있도록 했습니다.
 그 외 매장(상품)의 결제 데이터를 한 시간 단위로 묶고 가장 매출이 많은 시간 순으로 표기한 "상위 결제 시간", 매장의 경우 해당 매장에서 가장 많이 팔린 상품을 보여주는 "상위 매출 상품", 상품의 경우 가장 많은 매출을 낸 매장을 보여주는 "상위 결제 매장" 컬럼을 보여줍니다.
 
-<!-- 사진1 -->
-
 ### 보기 페이지
 
-해당 매장(상품)을 지정한 기간으로 묶은 후, 그것을 가공해서 그래프로 출력합니다.
-
-<!-- 사진2 -->
+해당 매장(상품)을 지정한 기간으로 묶은 후, 그것을 가공해서 그래프로 출력합니다. 우선 오늘 결제한 데이터를 기반으로 어제와 오늘의 매출 비교, 오늘의 시간별 매출액, 오늘의 상위 결제 카드사를 추출했습니다.
+그리고 기간 선택지에 따라 이전 기간과 현재 기간의 매출액 비교, 기간별(예 - 4주전, 3주전, 2주전, 1주전, 현재) 매출액, 상위 매출 상품(매장), 결제 카드나 시간으로 그룹화해서 매출액 5순위 데이터를 구했습니다.
 
 ## 작업 1. 데이터 가공하기
 
@@ -120,14 +117,97 @@ const response = await Data.aggregate([
 - `$unwind`로 data 변수(배열)을 해체해 객체로 만들면서 `includeArrayIndex`으로 인덱스 숫자를 serial_number 변수에 담도록 했습니다.
 - 마지막으로 data 변수(객체) 안에 있던 값들을 새로운 변수로 다시 선언했습니다.
 
-### 3) 보기 페이지에서의 데이터 가공
-
-9개 가공, 8개 가공
-
 ## 작업 2. 데이터 시각화
 
-<!-- 데이터 시각화는 [ReCharts](https://recharts.org/en-US/)를 사용했습니다. -->
-<!-- recharts 의 용어들. 반응형 작업 -->
+데이터 시각화는 [ReCharts](https://recharts.org/en-US/)를 사용했습니다. 막대그래프, 꺾은선그래프 등 다양한 그래프 형식을 지원합니다. 
+
+### 1) 기본적인 표기
+
+```javascript
+# 막대그래프
+const data = [{name:'a',value:1000}]
+function Bar() {
+  return (
+    <BarChart data={data}>
+      <XAxis dataKey='name' />
+      <YAxis />
+      <Bar
+        dataKey='value'
+        label={{position:'top'}, fill:'#000'}
+        barSize={15}
+      >
+        {data.map((entry, index) => (<Cell key={index} />))}
+      </Bar>
+    </BarChart>
+  )
+}
+# 꺾은선그래프
+function Line() {
+  return (
+    {/* 그래프의 마진을 직접 설정할 수 있습니다. */}
+    <LineChart 
+      data={[{name:'a',value1:1000, value2}]}
+      margin={{top:10, left: 10, bottom: 10, right: 10}}
+    >
+      <XAxis dataKey='name' interval={0} />
+      <YAxis hide />
+      {/* 두 개의 Line 으로 여러 개의 꺾은선그래프를 그릴 수 있습니다. */}
+      <Line dataKey='value1' name='value1' stroke='#000' />
+      <Line dataKey='value2' name='value2' stroke='#e2e2e2' />
+    </LineChart>
+  )
+}
+# 파이차트
+const colors = ['green','red','blue','purple','yellow']
+function Pie() {
+  return (
+    <PieChart width={300} height={300}>
+      <Pie 
+        data={data}
+        cx='50%'
+        cy='50%'
+        innerRadius='50%'
+        dataKey='value'
+      >
+        {data.map((entry, index) => (
+          <Cell key={index} fill={colors[index]} />
+        ))}
+      </Pie>
+    </PieChart>
+  )
+}
+
+```
+
+### 2) 그래프를 가공하기
+
+1. 반응형 작업
+
+`<ResponsiveContainer>`컴포넌트로 차트를 감싸주면 반응형으로 그래프를 만들 수 있습니다. props 로 width, height 등 필요한 설정을 추가하시면 됩니다.
+
+2. x축, y축 가공하기
+
+```javascript
+# Y축 간격을 임의로 조절하기. 최대값을 1.4배로 늘려 라벨이 가려지지 않도록 할 때 사용했습니다.
+<YAxis domail={[0, (dataMax) => dataMax * 1.4]} />
+# 임의로 축 라벨을 수정하기 예시
+const CustomXTic = ({x, y, stroke, payload}) => {
+  <g transform={`translate(${x},${y}`)}>
+    <text
+      x={0}
+      y={0}
+      dy={0}
+      textAnchor='middle'
+      fontSize={10}
+    >
+      {payload.value}
+    </text>
+  </g>
+}
+<XAxis dataKey='name' tick={<CustomXTic />} />
+```
+
+- 그래프 변경
 
 ## 작업 3. 클라이언트 영역에서의 작업
 
@@ -160,4 +240,18 @@ const firstDate = new Date(dateObj.setDate(dateObj.getDate() - period + 1));
 4. 두번째 날짜는 프로젝트에서 기획한대로 세번째 날짜의 하루 전입니다.
 5. 네번째 날짜 역시 세번째 날짜와 같은 방법으로 구합니다.
 
-### 2) useSWR
+#### 수정사항: moment-timezone으로 날짜 계산하기
+
+AWS Beanstalk 애플리케이션에서는 날짜 계산 시 한국 시간을 고려하지 않는 문제를 확인했습니다. 그에 따라 [moment-timezone](https://momentjs.com/timezone/) 패키지를 이용, 타임존을 서울로 지정한 후 계산하는 방식으로 수정했습니다. 또한, moment 에는 문자열 추출과 계산 함수를 지원하기에 Date 보다 더욱 쉽게 작업할 수 있었습니다. 참고로, [자바스크립트에서 타임존 다루기 (2) : NHN Cloud Meetup](https://meetup.toast.com/posts/130)에서 moment-timezone 을 소개받았습니다.
+
+```javascript
+import moment from 'moment-timezone';
+# 오늘의 날짜 선언
+const today = moment().tz('Asia/Seoul')
+# 오늘의 날짜 문자열로 추출. format 으로 형식을 자유롭게 지정할 수 있습니다.
+const todayStr = today.format('YYYYMMDD')
+# 날짜 계산하기. subtract(), add() 함수 두 번째 인수로 시, 분, 초, 일 등 다양하게 계산할 수 있습니다.
+const yesterday = moment().tz('Asia/Seoul').subtract(1, 'day')
+# 밀리초 계산
+const millisecond = today.valueOf()
+```
