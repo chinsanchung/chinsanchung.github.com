@@ -119,7 +119,7 @@ const response = await Data.aggregate([
 
 ## 작업 2. 데이터 시각화
 
-데이터 시각화는 [ReCharts](https://recharts.org/en-US/)를 사용했습니다. 막대그래프, 꺾은선그래프 등 다양한 그래프 형식을 지원합니다. 
+데이터 시각화는 [ReCharts](https://recharts.org/en-US/)를 사용했습니다. 막대그래프, 꺾은선그래프 등 다양한 그래프 형식을 지원합니다.
 
 ### 1) 기본적인 표기
 
@@ -133,7 +133,7 @@ function Bar() {
       <YAxis />
       <Bar
         dataKey='value'
-        label={{position:'top'}, fill:'#000'}
+        label={{position:'top', fill:'#000'}}
         barSize={15}
       >
         {data.map((entry, index) => (<Cell key={index} />))}
@@ -145,7 +145,7 @@ function Bar() {
 function Line() {
   return (
     {/* 그래프의 마진을 직접 설정할 수 있습니다. */}
-    <LineChart 
+    <LineChart
       data={[{name:'a',value1:1000, value2}]}
       margin={{top:10, left: 10, bottom: 10, right: 10}}
     >
@@ -162,7 +162,7 @@ const colors = ['green','red','blue','purple','yellow']
 function Pie() {
   return (
     <PieChart width={300} height={300}>
-      <Pie 
+      <Pie
         data={data}
         cx='50%'
         cy='50%'
