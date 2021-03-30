@@ -188,7 +188,8 @@ function Pie() {
 2. x축, y축 가공하기
 
 ```javascript
-# Y축 간격을 임의로 조절하기. 최대값을 1.4배로 늘려 라벨이 가려지지 않도록 할 때 사용했습니다.
+# Y축 간격을 임의로 조절하기.
+## 최대값을 1.4배로 늘려 라벨이 가려지지 않도록 할 때 사용했습니다.
 <YAxis domail={[0, (dataMax) => dataMax * 1.4]} />
 # 임의로 축 라벨을 수정하기 예시
 const CustomXTic = ({x, y, stroke, payload}) => {
@@ -213,11 +214,13 @@ const CustomXTic = ({x, y, stroke, payload}) => {
 
 ### 1) Date.getDate(): 이전 기간과 현재 기간을 계산해서 yyyy.mm.dd 형식으로 가공하기
 
-기간 검색 조건을 문자열로 보여주려면 계산을 해야합니다. 예를 들어 기간을 7일으로 한다면, "2021.02.04 ~ 2021.02.10 || 2021.02.11 ~ 2021.02.17"이라는 결과가 나오게 해야합니다. 계산하는 방법은 [stackoverflow: How to subtract days from a plain Date?](https://stackoverflow.com/questions/1296358/how-to-subtract-days-from-a-plain-date)를 참고했습니다.
+기간 검색 조건을 문자열로 보여주려면 계산을 해야합니다. 예를 들어 기간을 7일으로 한다면, `2021.02.04 ~ 2021.02.10 || 2021.02.11 ~ 2021.02.17`이라는 결과가 나오게 해야합니다. 계산하는 방법은 [How to subtract days from a plain Date?](https://stackoverflow.com/questions/1296358/how-to-subtract-days-from-a-plain-date)를 참고했습니다.
 
 ```javascript
-// 원래는 날짜 조건을 컴포넌트화해서 date, period 를 props로 내려받았지만, 여기서는 이해를 돕기 위해 값을 직접 구했습니다.
-import { parse } from "query-string"; // URL 쿼리 문자열을 객체로 변환합니다. 참고로 객체를 문자열로 바꾸는 stringify 함수도 가지고 있습니다.
+// 원래는 날짜 조건을 컴포넌트화해서 date, period 를 props로 내려받았지만,
+// 여기서는 이해를 돕기 위해 값을 직접 구했습니다.
+// URL 쿼리 문자열을 객체로 변환합니다. 참고로 객체를 문자열로 바꾸는 stringify 함수도 가지고 있습니다.
+import { parse } from "query-string";
 import { useLocation } from "react-router-dom";
 
 const location = useLocation();
