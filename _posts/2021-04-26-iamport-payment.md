@@ -23,12 +23,13 @@ tags:
 ## 1. 들어가기에 앞서
 
 우선 아임포트 관리자에서 테스트 모드 설정을 해야 합니다. [테스트모드 설정하기](https://docs.iamport.kr/admin/test-mode)를 참고하셔서 작업하시기 바랍니다. 참고로 일반 결제와 정기 결제의 PG 설정이 다르다는 점에 유의하셔야 합니다.
+글의 진행 방식은 크게 기본적인 설정, 일반 결제, 정기 결제, 환불으로 진행하겠습니다.
 
-## 2. 클라이언트에서의 아임포트 cdn 설정
+## 2. 기본 설정
+
+### 클라이언트에서의 아임포트 cdn 설정
 
 클라이언트에서는 우선 라이브러리를 가져온 후, 그것으로 아임포트를 실행하는 버튼을 만들어야 합니다. 그리고 아임포트에서 결제를 하면서 서버 함수를 연결시킵니다.
-
-### 1. cdn 가져오기 및 시작 버튼
 
 처음에는 index.html 의 script 에 라이브러리를 가져왔지만, 지금은 버튼이 있는 컴포넌트가 마운트됐을 때 라이브러리를 실행하도록 변경했습니다. 그래서 처음부터 전부 불러오지 않고, 필요할 때만 라이브러리를 가져온다는 장점이 있습니다.
 
@@ -39,25 +40,25 @@ function IamportLibrary() {
   useEffect(() => {
     const loadSdk = () => {
       const jqueryPromise = new Promise((res, rej) => {
-        const library = document.querySelector('#jquery-sdk');
+        const library = document.querySelector("#jquery-sdk");
         if (library) {
           res();
         } else {
-          const jquery = document.createElement('script');
-          jquery.id = 'jquery-sdk';
-          jquery.src = '//code.jquery.com/jquery-3.6.0.min.js';
+          const jquery = document.createElement("script");
+          jquery.id = "jquery-sdk";
+          jquery.src = "//code.jquery.com/jquery-3.6.0.min.js";
           jquery.onload = res;
           document.body.appendChild(jquery);
         }
       });
       const iamport = new Promise((res, rej) => {
-        const library = document.querySelector('#iamport-sdk');
+        const library = document.querySelector("#iamport-sdk");
         if (library) {
           res();
         } else {
-          const iamport = document.createElement('script');
-          iamport.id = 'iamport-sdk';
-          iamport.src = '//cdn.iamport.kr/js/iamport.payment-1.1.8.js';
+          const iamport = document.createElement("script");
+          iamport.id = "iamport-sdk";
+          iamport.src = "//cdn.iamport.kr/js/iamport.payment-1.1.8.js";
           iamport.onload = res;
           document.body.appendChild(iamport);
         }
@@ -66,7 +67,7 @@ function IamportLibrary() {
     };
     const unloadSdk = () => {
       const jqueryPromise = new Promise((res, rej) => {
-        const library = document.querySelector('#jquery-sdk');
+        const library = document.querySelector("#jquery-sdk");
         if (library) {
           library.parentNode.removeChild(library);
         } else {
@@ -74,7 +75,7 @@ function IamportLibrary() {
         }
       });
       const iamport = new Promise((res, rej) => {
-        const library = document.querySelector('#iamport-sdk');
+        const library = document.querySelector("#iamport-sdk");
         if (library) {
           library.parentNode.removeChild(library);
         } else {
@@ -96,16 +97,82 @@ function IamportLibrary() {
 }
 ```
 
-그리고 결제입니다. [아임포트 docs](https://docs.iamport.kr/)
+### 백엔드 설정
 
-### 2. 일반 결제, 정기 결제 요청
+백엔드에서는 기본적으로 아임포트에 요청하기 위해 엑세스 토근이 필요합니다. 이 토큰을 헤더의 authorization 에 담아 전달합니다.
 
-## 3. 백엔드에서 결제 서비스
+```javascript
+const getAccessToken = async () => {
+  try {
+    const response = await axios({
+      url: "https://api.iamport.kr/users/getToken",
+      method: "post",
+      headers: { "Content-Type": "application/json" },
+      data: {
+        imp_key: "impKey",
+        imp_secret: "impSecret",
+      },
+    });
 
-### 1. 기본적인 설정
+    const { access_token } = response.data.response;
+    return access_token;
+  } catch (error) {
+    throw error;
+  }
+};
+```
 
-### 2. 일반 결제
+## 3. 일반 결제
 
-### 3. 정기 결제
+### 클라이언트
 
-## 4. 설명을 마치며
+일반 결제를 시작합니다. 일반 결제를 위해선 결제 방법을 미리 설정해둬야 진행할 수 있습니다. 카드, 휴대폰, 계좌이체 등 사용하고자 하는 결제 방법으로 진행합니다.
+
+```javascript
+const onStartCommon = useCallback(() => {
+  const param = {
+    pg: "html5_inicis",
+    pay_method: 'card',
+    merchant_uid: 'merchant_123',
+    name: '결제할 상품 이름',
+    amount: 10000,
+    buyer_email: '이메일',
+    buyer_name: '이름',
+    buyer_tel: '01012345678',
+    digital: false,
+    m_redirect_url: '모바일용 리다이렉트 url'
+  };
+  window.IMP.request_pay(param, async (response) => {
+        if (response.success) {
+          const { imp_uid, merchant_uid } = response;
+          try {
+            await axios.post('/payment', { imp_uid, merchant_uid, user_id });
+            return;
+          } catch (error) {
+            console.log('등록 에러')
+            return;
+          }
+            .then(() => {
+              console.log('결제 성공')
+            }, [])
+            .catch((error) => {
+              console.log('DB 등록 에러:', error?.response?.data);
+              return openModal({ body: error?.response?.data });
+            });
+        } else {
+          console.log('결제 실패: ', response.error_msg);
+          return openModal({ body: response.error_msg });
+        }
+      });
+}, []);
+```
+
+이번에는 백엔드 영역입니다.
+
+```javascript
+const onStartCommonPyment = async () => {};
+```
+
+## 4. 정기 결제
+
+## 5. 환불 과정
