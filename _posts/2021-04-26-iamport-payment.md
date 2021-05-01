@@ -276,7 +276,7 @@ const verifyCommonPayment = async (req, res) => {
     res.status(500).json(error);
   }
 };
-axios.post("/payment-complete", verifyCommonPayment);
+app.post("/payment-complete", verifyCommonPayment);
 ```
 
 마지막으로 웹훅에서 데이터를 동기화합니다.
@@ -313,8 +313,8 @@ REST API, 일반결제창으로 구분하는데 저는 일반결제창을 이용
 
 ```javascript
 const startIamportPayment = useCallback(async () => {
-  console.log("1. 우선 DB에 결제 정보를 저장합니다.");
   try {
+    console.log("1. 우선 DB에 결제 정보를 저장합니다.");
     const merchant_uid = await axios.post("payment", {
       user_id: "사용자 고유 아이디",
       name: "상품 이름",
@@ -392,4 +392,271 @@ const createPayment = async (req, res) => {
 app.post("/payment", createPayment);
 ```
 
+다음으로 일반결제와 다르게 백엔드에서 아임포트에 결제를 요청합니다. 또한 결제와 동시에 다음 결제를 예약합니다.
+
+```javascript
+const orderAndSchedule = async (req, res) => {
+  const { merchant_uid } = req.body;
+  try {
+    const accessToken = await getImportAccessToken();
+    const order = await Order.findOne({ merchant_uid });
+    if (!paymentFromDB) {
+      console.log("데이터베이스에 결제 정보가 없습니다.");
+      res.status(400).send("데이터베이스에 결제 정보가 없습니다.");
+    } else {
+      console.log("정기권 결제를 시작합니다.");
+      const newOrder = await axios.post(
+        "https://api.iamport.kr/subscribe/payments/again",
+        {
+          customer_uid: "빌링키 등록에 사용한 uid",
+          merchant_uid,
+          amount: order?.amount,
+          name: order?.title,
+          buyer_email: "사용자로부터 정보를 가져와서 기입",
+          buyer_name: "사용자로부터 정보를 가져와서 기입",
+          buyer_tel: "사용자로부터 정보를 가져와서 기입",
+        },
+        { headers: { Authorization: accessToken } }
+      );
+      const { code, message } = paymentResult.data;
+
+      if (code === 0) {
+        console.log("결제 성공. 다음 결제를 예약합니다.");
+        const nextMerchantUid = `schedule_${new Date().getTime()}`;
+        const schedule_at = "Unix Time Stamp 를 기입하셔야 합니다.";
+        await axios.post(
+          "https://api.iamport.kr/subscribe/payments/schedule",
+          {
+            customer_uid: "빌링키 등록에 사용한 uid",
+            schedules: [
+              {
+                merchant_uid: nextMerchantUid,
+                schedule_at,
+                amount: order?.amount,
+                name: order?.title,
+                buyer_email: "사용자로부터 정보를 가져와서 기입",
+                buyer_name: "사용자로부터 정보를 가져와서 기입",
+                buyer_tel: "사용자로부터 정보를 가져와서 기입",
+              },
+            ],
+          },
+          { headers: { Authorization: accessToken } }
+        );
+        console.log("또한 새로운 merchant_uid 를 현재 결제에 저장합니다.");
+        console.log(
+          "다음 결제를 newMerchantUid 로 진행할 때 가격이나 이름 등을 가져오기 위해서입니다."
+        );
+        await Order.updateOne(
+          { merchant_uid },
+          { $set: { next_merchant_uid: nextMerchantUid } }
+        );
+      } else {
+        console.log(
+          "고객 카드 한도초과, 거래정지카드, 잔액부족 등으로 실패했습니다."
+        );
+        res
+          .status(409)
+          .send(
+            "고객 카드 한도초과, 거래정지카드, 잔액부족 등으로 실패했습니다."
+          );
+      }
+    }
+  } catch (error) {
+    console.log("정기 결제에 에러가 발생했습니다.", error);
+    res.status(500).send("정기 결제에 에러가 발생했습니다.");
+  }
+};
+```
+
+첫 정기결제는 `merchant_uid` 를 `merchant_`으로 시작했기에, 웹훅에서 데이터를 갱신할 때는 일반 결제의 방식을 따릅니다. 하지만 `schedule_`로 시작하는 다음 결제는 갱신에 추가로 다음 결제를 예약하는 과정을 추가합니다.
+
+```javascript
+const iamportWebhook = async (req, res) => {
+  const { imp_uid, merchant_uid } = req.body;
+  if (merchant_uid.indexOf("billing_key_") >= 0) {
+    console.log("빌링키 결제는 데이터베이스에 저장하지 않습니다.");
+    res.send("billing");
+  } else if (merchant_uid.indexOf("schedule_") >= 0) {
+    console.log(
+      "이전 예약을 아임포트에서 결제했습니다. 해당 정보를 데이터베이스에 생성합니다."
+    );
+    try {
+      const accessToken = await getAccessToken();
+      const response = await axios.get(
+        `https://api.iamport.kr/payments/${imp_uid}`,
+        { headers: { Authorization: accessToken } }
+      );
+      const paymentData = response.data.response;
+      const { status, customer_uid } = paymentData;
+      if (status === "paid") {
+        console.log(
+          "예약 결제 성공으로, 해당 데이터를 데이터베이스에 저장합니다."
+        );
+        console.log("결제에 대한 정보를 불러옵니다.");
+        const prevOrder = await Order.findOne({
+          next_merchant_uid: merchant_uid,
+        }).lean();
+        const nextMerchantUid = `schedule_${new Date().getTime()}`;
+        await Order.create({
+          name: prevOrder.name,
+          merchant_uid,
+          amount: prevOrder.amount,
+          user_id: customer_uid,
+          order_date: new Date(),
+          next_merchant_uid: nextMerchantUid,
+          payment_detail: paymentData,
+        });
+        console.log("이제 다음 결제를 예약합니다.");
+
+        const schedule_at = "밀리초로 작성하셔야 합니다.";
+        await axios.post(
+          "https://api.iamport.kr/subscribe/payments/schedule",
+          {
+            customer_uid,
+            schedules: [
+              {
+                merchant_uid: nextMerchantUid,
+                schedule_at,
+                amount: prevOrder.amount,
+                name: prevOrder.name,
+              },
+            ],
+          },
+          { headers: { Authorization: accessToken } }
+        );
+      } else if (status === "cancelled") {
+        console.log("결제를 환불했습니다.");
+        await Order.updateOne(
+          { merchant_uid },
+          { $set: { payment_detail: paymentData } }
+        );
+        res.send("결제 환불");
+      }
+    } catch (error) {
+      console.log("아임포트 정기 결제 갱신 에러",, error);
+      res.send("아임포트 정기 결제 갱신 에러가 발생했습니다.");
+    }
+  }
+};
+```
+
+### 예약 해지
+
+서버에서 예약을 취소하는 방법을 작성해봅니다.
+
+```javascript
+const cancelSchedule = async () => {
+  const { customer_uid, merchant_uid, next_merchant_uid } = req.body;
+  try {
+    const accessToken = await getImportAccessToken();
+    const response = await axios.post(
+      "https://api.iamport.kr/subscribe/payments/unschedule",
+      { customer_uid, merchant_uid: [next_merchant_uid] },
+      { headers: { Authorization: accessToken } }
+    );
+    const { code, message } = response.data;
+    if (code === 0) {
+      console.log(
+        "해지 성공. 이전 예약에 해지한 예약에 대한 정보를 수정합니다."
+      );
+      await Order.updateOne(
+        { merchant_uid },
+        { $set: { next_merchant_uid: "" } }
+      );
+      res.send("해지 성공");
+    } else {
+      console.log("해지 실패", message);
+      res.status(409).send(message);
+    }
+  } catch (error) {
+    console.log("예약 해지에 에러가 발생했습니다.", error);
+    res.send("예약 해지에 에러가 발생했습니다.");
+  }
+};
+app.post("/cancel-schedule", cancelSchedule);
+```
+
 ## 5. 모바일 콜백
+
+공식 문서에 따르면 "KG이니시스, LG U+, NHN KCP, 나이스정보통신, JTNet 그리고 KICC는 PC 환경과는 다르게 각 PG사의 웹사이트로 리디렉션되어 결제가 진행됩니다. 따라서 IMP.request_pay(param, callback)를 호출해 결제시, 결제 프로세스 완료 후 callback 함수가 실행되지 않습니다." 라고 하며, 따라서 콜백을 실행할 클라이언트 페이지를 따로 생성해야합니다.
+
+아임포트에서 콜백의 url 에 정보를 담는데 아래와 같습니다.
+
+- 성공 : `URL주소?imp_uid=아임포트_번호&merchant_uid=가맹점_고유_주문번호&imp_success=true`
+- 실패 : `URL주소?imp_uid=아임포트_번호&merchant_uid=가맹점_고유_주문번호&imp_success=false&error_code=에러_코드&error_msg=에러_메시`
+
+여기에 저는 정기권인지 아닌지 여부를 params 에 담아 구분하도록 했습니다.
+
+```javascript
+import React, { useEffect, useCallback } from "react";
+import axios from "axios";
+import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
+
+function IamportCallback() {
+  const match = useRouteMatch();
+  const location = useLocation();
+  const history = useHistory();
+
+  useEffect(() => {
+    const query = location.search.replace("?", "").split("&");
+    const isSeason = match.params.season;
+    const imp_uid = query[0].split("=")[1];
+    const merchant_uid = query[1].split("=")[1];
+
+    if (query.length === 3) {
+      console.log("성공한 경우");
+      if (isSeason === "true") {
+        console.log("정기권");
+        axios
+          .post("/season-complete", { merchant_uid })
+          .then(() => {
+            alert("결제 성공");
+            history.push("이전 페이지로 이동합니다.");
+          })
+          .catch((error) => {
+            alert("걸제 실패");
+            history.push("이전 페이지로 이동합니다.");
+          });
+      } else {
+        axios
+          .post("/payment/common-complete", { imp_uid, merchant_uid })
+          .then(() => {
+            alert("결제 성공");
+            history.push("이전 페이지로 이동합니다.");
+          })
+          .catch((error) => {
+            alert("걸제 실패");
+            history.push("이전 페이지로 이동합니다.");
+          });
+      }
+    } else {
+      const message = query[4].split("=")[1];
+      console.log("실패", message);
+      alert(message);
+    }
+  }, []);
+
+  return <></>;
+}
+
+export default IamportCallback;
+```
+
+## 6. 그 외 참고사항
+
+정기결제를 위한 Unix Time Stamp 값을 계산할 때 [moment-timezone](https://www.npmjs.com/package/moment-timezone)으로 날짜를 구해서 계산했습니다. 그 이유는 AWS Beanstalk 에 배포했을 때 Date 객체가 한국 시간(UTC+09:00) 대신 UTC+0:00으로 시간을 계산하는 문제가 있었고, 또한 시간을 문자열로 가공하거나 계산하기가 간편해서입니다.
+
+```javascript
+import moment from "moment-timezone";
+
+const getMilliSecondFromToday = () => {
+  console.log("정기 결제의 밀리초를 구하기위해 사용한 방법입니다.");
+  const duration = 30; //30일로 가정합니다.
+  const today = moment().tz("Asia/Seoul");
+  const target = today.add(duration, "day");
+
+  return target.unix();
+};
+```
+
+타임존에 대해 더 자세한 설명은 [자바스크립트에서 타임존 다루기 (1)](https://meetup.toast.com/posts/125), [자바스크립트에서 타임존 다루기 (2)](https://meetup.toast.com/posts/130)에서 읽어보실 수 있습니다.
