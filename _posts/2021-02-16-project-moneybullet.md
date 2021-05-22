@@ -21,6 +21,8 @@ tags:
 
 > 2021년 1월부터 2월 초까지 가맹점주의 결제 데이터를 가공해서 시각화하는 MoneyBullet 웹 애플리케이션을 개발했습니다. 우선 프로젝트에 대해 간략하게 소개한 후, 작업하면서 기억에 남던 부분을 설명하겠습니다.
 
+- 2021년 5월 21일, AWS Beanstalk 의 환경을 종로해서 더 이상 사이트에 접속하실 수 없게 됐습니다. 대신 스크린샷을 아래에 추가했습니다.
+
 ## 프로젝트 구성
 
 이번 프로젝트는 크게 매장, 상품 데이터로 구분하고, 그에 맞춰 데이터를 분류, 가공해서 출력하는 과정을 거칩니다.
@@ -39,10 +41,28 @@ tags:
 목록의 컬럼들은 이름, 코드, 현재 기간의 매출액뿐만 아니라, 이전 기간(예시: 14일 전 ~ 7일 전 / 7일 전 ~ 오늘)의 매출액을 표기해서 현재 매출액과 비교할 수 있도록 했습니다.
 그 외 매장(상품)의 결제 데이터를 한 시간 단위로 묶고 가장 매출이 많은 시간 순으로 표기한 "상위 결제 시간", 매장의 경우 해당 매장에서 가장 많이 팔린 상품을 보여주는 "상위 매출 상품", 상품의 경우 가장 많은 매출을 낸 매장을 보여주는 "상위 결제 매장" 컬럼을 보여줍니다.
 
+목록 페이지의 스크린샷입니다.
+
+[매장 목록 보기](https://drive.google.com/file/d/141IrCgMdjv_Xk-25nLoDJiWE93xgG62N/view?usp=sharing)
+
+[상품 목록 보기](https://drive.google.com/file/d/1p7EOkTvcUlSi4O9WgNHj2KkiQjTpPK2E/view?usp=sharing)
+
+다음은 매장 목록의 두 항목을 체크해 비교하는 모달입니다.
+
+[두 매장을 비교하는 모달](https://drive.google.com/file/d/1eN2r60M6Eis8u5aJCVlB0z8mRBs5iKqp/view?usp=sharing)
+
+[두 상품을 비교하는 모달](https://drive.google.com/file/d/1izelIqmK2TVZkTF-FJEwEXcWKtaLiNKz/view?usp=sharing)
+
 ### 보기 페이지
 
 해당 매장(상품)을 지정한 기간으로 묶은 후, 그것을 가공해서 그래프로 출력합니다. 우선 오늘 결제한 데이터를 기반으로 어제와 오늘의 매출 비교, 오늘의 시간별 매출액, 오늘의 상위 결제 카드사를 추출했습니다.
 그리고 기간 선택지에 따라 이전 기간과 현재 기간의 매출액 비교, 기간별(예 - 4주전, 3주전, 2주전, 1주전, 현재) 매출액, 상위 매출 상품(매장), 결제 카드나 시간으로 그룹화해서 매출액 5순위 데이터를 구했습니다.
+
+보기 페이지의 스크린샷입니다.
+
+[매장 상세 보기](https://drive.google.com/file/d/1mlyrlurF9q_SOmirALwmujB6C8gWfovD/view?usp=sharing)
+
+[상품 상세 보기](https://drive.google.com/file/d/1sZS4cQvgzTZ54q1xfndQB1HPHf2kbUqS/view?usp=sharing)
 
 ## 작업 1. 데이터 가공하기
 
