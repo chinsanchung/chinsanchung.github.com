@@ -4,11 +4,9 @@ main:
   # url: https://mmistakes.github.io/minimal-mistakes/docs/quick-start-guide/
   # - title: "About"
   #   url: https://chinsanchung.github.io/about/
-  - title: "Database"
-    url: /database/
-  - title: "Kaggle"
-    url: /kaggle/
   - title: "Web"
     url: /web/
+  - title: "Database"
+    url: /database/
   - title: "All Posts"
     url: /categories/
