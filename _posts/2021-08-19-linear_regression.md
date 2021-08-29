@@ -13,10 +13,8 @@ toc_sticky: true
 toc_labe: 목차
 description: 선형 회귀와 다항 회귀에 대해 공부한 내용을 정리합니다.
 tags:
-  - machine learning
+  - machine_learning
 ---
-
-## 개요
 
 대표적인 회귀 알고리즘인 **선형 회귀**, 그리고 **다항 회귀**에 대해 그동안 읽어왔던 교재를 기반으로 정리하고자 합니다. 언어는 파이썬, 주요 라이브러리는 numpy, pandas, scikit-learn 을 사용합니다.
 
