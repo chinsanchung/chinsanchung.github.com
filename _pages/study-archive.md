@@ -1,6 +1,6 @@
 ---
 title: 'Posts by Study'
-layout: categories
+layout: category-study
 permalink: /study/
 author_profile: true
 ---
