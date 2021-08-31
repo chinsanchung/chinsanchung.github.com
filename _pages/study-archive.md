@@ -1,6 +1,6 @@
 ---
-title: "Posts by Database"
+title: 'Posts by Study'
 layout: categories
-permalink: /database/
+permalink: /study/
 author_profile: true
 ---
