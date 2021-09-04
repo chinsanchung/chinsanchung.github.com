@@ -175,37 +175,66 @@ azdias_without_outlier = azdias.drop(columns=['AGER_TYP', 'GEBURTSJAHR', 'TITEL_
 
 1. 각 행에 얼마나 많은 결측치가 있는지 확인합니다.
 
-우선 각 행에 결측치가 몇 개가 있는지를 계산한 데이터프레임을 만들었습니다. [참고한 코드](https://datascience.stackexchange.com/questions/12645/how-to-count-the-number-of-missing-values-in-each-row-in-pandas-dataframe)
+각 행에 결측치가 몇 개가 있는지를 계산한 시리즈를 만들었습니다. [참고한 코드](https://datascience.stackexchange.com/questions/12645/how-to-count-the-number-of-missing-values-in-each-row-in-pandas-dataframe)
 
 ```python
 isna_azdias = azdias.isna()
 nan_count = isna_azdias.sum(axis=1)
-nan_count_df['nan_count'].value_counts().sort_values(ascending=False)
 ```
 
-한 행의 전체 열 중에서 결측치가 얼마나 있는지를 계산한 `nan_count`의 값을 정렬했을 때, 개수가 3, 2, 4인 행이 전체 데이터의 51.4%를 차지하고 있었습니다.
+각 행에 결측치가 몃 개가 있는지를 계산한 pandas Series 를 만들었습니다. 그리고 `value_counts()`, `sort_values(ascending=False)`를 이용해 각 행의 결측치의 개수를 기준으로 그룹으로 묶은 후, 묶은 행의 개수만큼 오름차순으로 정렬했습니다. 그 결과 결측치가 3개인 행이 가장 많으며, 상위 3개의 비중이 전체의 51.4%, 상위 5개의 비중이 71.8%를 차지합니다.
 
 ```python
-nan_count_df.loc[nan_count_df['nan_count'] > 10].describe()
+nan_count.value_counts().sort_values(ascending=False)
 ```
+
+3 189850
+2 135292
+4 133473
+5 110108
+6 71615
+
+```
+
+```
+
+이번에는 위의 결과에서 결측치가 가장 많은 행을 기준으로 내림차순으로 정렬했습니다. 상위 10개 모두 결측치가 40개를 초과하고 있으며, 전체의 8.3%를 차지하고 있습니다.
+
+```python
+nan_count.value_counts().sort_index(ascending=False)
+```
+
+54 1
+53 45579
+51 483
+50 105
+49 27357
+
+```
+
+```
+
+전체 데이터에서 결측치가 한 자리수인 행의 비중은 80.8%으로, 나머지 19.2% 를 주의해서 데이터 전처리를 수행하면 되겠습니다.
 
 2. 누락된 데이터의 양에 따라 데이터셋을 두 그룹으로 나눕니다.
 
-우선 원래의 데이터프레임을 복사한 후 거기에 `nan_count`를 열으로 추가한 데이터프레임을 만듭니다. 그리고 위의 수치를 토대로 결측치의 개수가 20미만인 것과 이상인 것으로 데이터를 분리합니다.
+결측치가 한 자리수인 행이 80.8%를 차지하는 것을 보며, 결측치가 10이상인지 아닌지를 기준으로 데이터를 나눴습니다.
 
 ```python
-azdias_with_nan_count_under_five = azdias_with_nan_count.loc[azdias_with_nan_count['nan_count'] < 20]
-azdias_with_nan_count_more_five = azdias_with_nan_count.loc[azdias_with_nan_count['nan_count'] >= 20]
+azdias_with_nan_count_under = azdias_with_nan_count.loc[azdias_with_nan_count['nan_count'] < 10]
+azdias_with_nan_count_more = azdias_with_nan_count.loc[azdias_with_nan_count['nan_count'] >= 10]
 ```
 
 3. 두 그룹을 비교하면서, 결측치가 많은 데이터와 없는 데이터의 특성의 분포가 서로 유사한지를 확인합니다.
 
-각 그룹에서 5개를 추출한 후, 결측치가 없는 열의 데이터로 그래프를 그려 비교합니다.
+각 그룹에서 20개를 추출한 후, 결측치가 없는 열의 데이터로 그래프를 그려 비교합니다. 그래프를 그리기 전, 그래프로 표현하기 위해 결측치가 없는 특성만을 선택했습니다.
+
+- 결측치가 없는 특성들은 전부 Person-level features 에 속하며,
 
 ```python
-# 결측치가 없는 데이터 5개를 추출합니다.
+# 결측치가 없는 데이터 20개를 추출합니다.
 under_nan_head = azdias_with_nan_count_under.sort_values(by='nan_count').head()
-# 결측치가 많은 데이터 5개를 추출합니다.
+# 결측치가 많은 데이터 20개를 추출합니다.
 more_nan_head = azdias_with_nan_count_more.sort_values(by='nan_count', ascending=False).head()
 # 비교를 위해서 열 중에서 결측치가 없는 데이터만을 저장합니다.
 non_nan_columns = np.array(nan_count_percentage.loc[nan_count_percentage == 0].index)
@@ -225,6 +254,88 @@ for i in range(6):
         axs[i][j].legend(loc='center right')
         idx += 1
 ```
+
+![결측치가 20이상 그리고 20미만인 데이터셋 비교]()
+
+`more_nan_head` 의 값이 높은 경우는 14개, `under_nan_head`가 높은 경우는 8개입니다. `under_nan_head`는 남성이, `more_nan_head`는 여성이 더 많았습니다.
+
+그 외 특이한 점은 `more_nan_head`에서는 5개 모두 동일한 값을 가진 특성들이 많았습니다. "SEMIO\_"로 시작하는 항목의 값은 5 이상인 경우가 많았는데, Data_Dictionary 에 따르면 low affinity, very low affinity 를 의미합니다. 따라서 결측치가 많은 항목이면 affinity 가 낮을 가능성이 높다고도 할 수 있습니다.
+
+### 특성 선택 후 다시 인코딩하기
+
+우선 특성이 어떻게 구성되어있는지 확인합니다.
+
+```python
+azdias.info()
+```
+
+범주형 특성의 클래스들을 확인합니다.
+
+```python
+azdias.describe(include=np.object)
+```
+
+#### 범주형 특성을 재인코딩하기
+
+1. 범주형 특성이 어떤 것이 있는지 확인합니다.
+
+```python
+azdias.describe(include=np.object)
+```
+
+또한 int64 형식의 특성도 숫자로 표현된 범주형 특성이라 할 수 있습니다.
+
+```python
+azdias.describe(include=np.int64)
+```
+
+2. 범주형 특성을 다시 인코딩합니다.
+
+결측치가 가장 많은 6개 특성을 제거한 데이터에서 우선 범주형 특성의 결측치를 최빈값으로 변경합니다. 우리는 이미 `azdias.describe(include=np.object)`을 통해 최빈값이 무엇인지를 알고 있습니다.
+
+```python
+azdias_without_outlier['OST_WEST_KZ'] = azdias_without_outlier['OST_WEST_KZ'].fillna('W')
+azdias_without_outlier['CAMEO_DEUG_2015'] = azdias_without_outlier['CAMEO_DEUG_2015'].fillna('8')
+azdias_without_outlier['CAMEO_DEU_2015'] = azdias_without_outlier['CAMEO_DEU_2015'].fillna('6B')
+azdias_without_outlier['CAMEO_INTL_2015'] = azdias_without_outlier['CAMEO_INTL_2015'].fillna('51')
+```
+
+숫자형인 범주형 특성의 결측치도 최빈값으로 변경합니다.
+
+```python
+mode_of_int_azdias = azdias_without_outlier[['ANREDE_KZ', 'FINANZ_MINIMALIST', 'FINANZ_SPARER', 'FINANZ_VORSORGER',
+       'FINANZ_ANLEGER', 'FINANZ_UNAUFFAELLIGER', 'FINANZ_HAUSBAUER',
+       'FINANZTYP', 'GREEN_AVANTGARDE', 'SEMIO_SOZ', 'SEMIO_FAM', 'SEMIO_REL',
+       'SEMIO_MAT', 'SEMIO_VERT', 'SEMIO_LUST', 'SEMIO_ERL', 'SEMIO_KULT',
+       'SEMIO_RAT', 'SEMIO_KRIT', 'SEMIO_DOM', 'SEMIO_KAEM', 'SEMIO_PFLICHT',
+       'SEMIO_TRADV', 'ZABEOTYP']].mode()
+
+for idx in np.arange(24):
+    feature_name = mode_of_int_azdias.columns[idx]
+    mode = mode_of_int_azdias.values[0][idx]
+    azdias_without_outlier[feature_name] = azdias_without_outlier[feature_name].fillna(mode)
+```
+
+마지막으로 숫자형 특성의 결측치를 최빈값으로 변경합니다.
+
+```python
+mode_of_float_azdias = azdias_without_outlier[azdias_without_outlier.describe().columns]
+
+for idx in np.arange(75):
+    feature_name = mode_of_float_azdias.columns[idx]
+    mode = mode_of_float_azdias.values[0][idx]
+    azdias_without_outlier[feature_name] = azdias_without_outlier[feature_name].fillna(mode)
+```
+
+우선 데이터는 가장 결측치가 많던 6개의 특성을 제외한 것을 사용했습니다. 그리고 범주형 특성은 4개, 숫자 형태의 범주형 특성은 24개가 있다는 것을 `describe()` method 로 확인했습니다.
+
+다음에는 결측치를 각 특성의 최빈값으로 변경했습니다.
+
+#### PRAEGENDE_JUGENDJAHRE, CAMEO_INTL_2015 특성을 조사하고 다시 설계하기
+
+#### 필요한 특성만을 선택하기
+
+### 데이터를 클리닝하는 함수 만들기
 
 ## 특성 변환
 
