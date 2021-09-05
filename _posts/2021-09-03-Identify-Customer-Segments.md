@@ -333,7 +333,71 @@ for idx in np.arange(75):
 
 #### PRAEGENDE_JUGENDJAHRE, CAMEO_INTL_2015 특성을 조사하고 다시 설계하기
 
+1. PRAEGENDE_JUGENDJAHRE 특성은 10년에 걸친 세대의 움직임(mainstream 또는 avantgarde), 위치(동쪽 또는 서쪽)에 대한 3차원의 정보를 결합한 것입니다. 이 특성을 10년에 대한 간격과 세대의 움직임 두 특성으로 분리해야합니다.
+
+딕셔너리 값은 세대의 간격의 앞 글자(40년대는 4, 50년대는 5)와 움직임(0은 mainstream, 1은 avantgarde)을 뜻합니다.
+
+```python
+praegende_jugendjahre = {
+    "1": [4, 0],
+    "2": [4, 1],
+    "3": [5, 0],
+    "4": [5, 1],
+    "5": [6, 0],
+    "6": [6, 1],
+    "7": [6, 1],
+    "8": [7, 0],
+    "9": [7, 1],
+    "10": [8, 0],
+    "11": [8, 1],
+    "12": [8, 0],
+    "13": [8, 1],
+    "14": [9, 0],
+    "15": [9, 1],
+}
+azdias_without_outlier['PRAEGENDE_JUGENDJAHRE'].apply(create_new_feature_with_praegende_jugendjahre)
+
+azdias_without_outlier['GENERATION'] = generation
+azdias_without_outlier['MOVEMENT'] = movement
+```
+
+"GENERATION"은 어느 세대인지 연도의 앞 글자를 따와서 저장한 숫자 형태의 범주형 feature 입니다. "MOVEMENT"은 범주형이지만 향후 예측에 활용하기 위해서 mainstream 일 경우 0, avantgarde 일 때는 1으로 설정했습니다.
+
+2. CAMEO_INTL_2015 특성은 부와 삶의 단계를 포함하고 있습니다. 10의 자리는 부, 1의 자리를 삶으로 구분하고 있으며, 이 특성 또한 10의 자리와 1의 자리로 분리해야합니다.
+
+```python
+wealth_list = []
+life_list = []
+
+
+def create_new_feature_with_cameo_intl_2015(value):
+    wealth_list.append(value[0])
+    life_list.append(value[1])
+
+azdias_without_outlier['CAMEO_INTL_2015'].apply(create_new_feature_with_cameo_intl_2015)
+
+azdias_without_outlier['WEALTH'] = wealth_list
+azdias_without_outlier['LIFE'] = life_list
+```
+
+"CAMEO_INTL_2015" 값의 앞자리를 "WEALTH" 그리고 뒷자리를 "LIFE"로 구분해서 새로운 특성을 만들었습니다.
+
+새로운 특성을 만들기 앞서 "PRAEGENDE_JUGENDJAHRE", "CAMEO_INTL_2015"의 결측치를 최빈값으로 변경했기 때문에 에러가 발생하지는 않았습니다. 다만 "PRAEGENDE_JUGENDJAHRE"의 10, 12 그리고 11, 13은 변환했을 때 같은 값이 나오게 됩니다. 이 부분을 염두에 둬야 할 것입니다.
+
 #### 필요한 특성만을 선택하기
+
+데이터프레임에 필요한 열만 있는지를 확인합니다. 여기서는 변환을 완료한 "PRAEGENDE_JUGENDJAHRE", "CAMEO_INTL_2015" 특성을 삭제했습니다.
+
+```python
+azdias_without_outlier = azdias_without_outlier.drop(columns=['PRAEGENDE_JUGENDJAHRE'])
+azdias_without_outlier = azdias_without_outlier.drop(columns=['CAMEO_INTL_2015'])
+```
+
+그리고 범주형 특성을 원-핫 인코딩을 통해 인코딩했습니다. 저는 [get_dummies](https://pandas.pydata.org/docs/reference/api/pandas.get_dummies.html)함수를 이용해 범주형 특성을 자동으로 변환했습니다.
+
+```python
+azdias_without_outlier = pd.get_dummies(azdias_without_outlier)
+```
 
 ### 데이터를 클리닝하는 함수 만들기
 
