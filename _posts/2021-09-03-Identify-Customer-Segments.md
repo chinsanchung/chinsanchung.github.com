@@ -32,37 +32,6 @@ tags:
 
 Arvato Bartlesmann 와의 협약으로 인해 프로젝트가 완성하면 반드시 로컬 컴퓨터에서 위의 파일들을 지워야합니다.(또한 프로젝트 이외의 목적으로 데이터를 활용하면 안됩니다.) 그에 따라 이번 프로젝트는 주피터 노트북으로 깃허브 레퍼지토리에 올리는 대신 이 문서에 작성하겠습니다.
 
-### 진행 절차
-
-1. 데이터 전처리
-
-When you start an analysis, you must first explore and understand the data that you are working with. In this (and the next) step of the project, you’ll be working with the general demographics data. As part of your investigation of dataset properties, you must attend to a few key points:
-
-- How are missing or unknown values encoded in the data? Are there certain features (columns) that should be removed from the analysis because of missing data? Are there certain data points (rows) that should be treated separately from the rest?
-- Consider the level of measurement for each feature in the dataset (e.g. categorical, ordinal, numeric). What assumptions must be made in order to use each feature in the final analysis? Are there features that need to be re-encoded before they can be used? Are there additional features that can be dropped at this stage?
-
-You will create a cleaning procedure that you will apply first to the general demographic data, then later to the customers data.
-
-2. 특성 변환
-
-Now that your data is clean, you will use dimensionality reduction techniques to identify relationships between variables in the dataset, resulting in the creation of a new set of variables that account for those correlations. In this stage of the project, you will attend to the following points:
-
-- The first technique that you should perform on your data is feature scaling. What might happen if we don’t perform feature scaling before applying later techniques you’ll be using?
-- Once you’ve scaled your features, you can then apply principal component analysis (PCA) to find the vectors of maximal variability. How much variability in the data does each principal component capture? Can you interpret associations between original features in your dataset based on the weights given on the strongest components? How many components will you keep as part of the dimensionality reduction process?
-
-You will use the sklearn library to create objects that implement your feature scaling and PCA dimensionality reduction decisions.
-
-3. 군집화
-
-Finally, on your transformed data, you will apply clustering techniques to identify groups in the general demographic data. You will then apply the same clustering model to the customers dataset to see how market segments differ between the general population and the mail-order sales company. You will tackle the following points in this stage:
-
-- Use the k-means method to cluster the demographic data into groups. How should you make a decision on how many clusters to use?
-- Apply the techniques and models that you fit on the demographic data to the customers data: data cleaning, feature scaling, PCA, and k-means clustering. Compare the distribution of people by cluster for the customer data to that of the general population. Can you say anything about which types of people are likely consumers for the mail-order sales company?
-
-sklearn will continue to be used in this part of the project, to perform your k-means clustering. In the end, you will export the completed notebook with your work as an HTML file, which will serve as a report documenting your approach and findings.
-
-https://review.udacity.com/#!/rubrics/1973/view
-
 ## 데이터 전처리
 
 전처리 전에 데이터를 불러옵니다.
@@ -76,9 +45,9 @@ feat_info = pd.read_csv('AZDIAS_Feature_Summary.csv', sep=';')
 
 #### 누락 값을 NaN 으로 변경하기
 
-feat_info 의 `missing_or_unknown` 열에는 azdias 데이터의 값들 중에서 누락 값이 무엇인지를 문자열로 변환한 리스트로 알려줍니다. 우선 누락 값들을 전부 NaN 으로 변경합니다.
+feat_info 의 missing_or_unknown 열에는 azdias 데이터의 값들 중에서 누락 값이 무엇인지를 문자열로 변환한 리스트로 알려줍니다. 우선 누락 값들을 전부 NaN 으로 변경합니다.
 
-리스트를 문자열로 변환했던 `missing_or_unknown` 값들을 [list_eval() ](https://stackoverflow.com/questions/23111990/pandas-dataframe-stored-list-as-string-how-to-convert-back-to-list을 이용해 원래대로 되돌립니다.
+리스트를 문자열로 변환했던 missing_or_unknown 열의 값들을 [list_eval() ](https://stackoverflow.com/questions/23111990/pandas-dataframe-stored-list-as-string-how-to-convert-back-to-list을 이용해 원래대로 되돌립니다.
 
 1. `name 'X' is not defined` 라는 에러가 발생했는데, 열이 "[-1, XX]" 으로 생긴 것이라서 생긴 문제. 그래서 replace 두 번해서 괄호를 지우고 split(',')으로 나눴습니다.
 
@@ -101,7 +70,7 @@ def convert_to_list(val):
 feat_info['missing_or_unknown'] = feat_info['missing_or_unknown'].apply(convert_to_list)
 ```
 
-2. 데이터셋에 변환한 값을 비교해야 함. 리스트 형태를 반복문을 돌려서? 시리즈로 뽑은 후에 apply 돌려서? apply 를 돌릴 때 열의 이름을 알고, 그래서 fea 에 연결시킨다음에 for 문 돌리기..?
+2. feat_info 의 missing_or_unknown 열과 azdias 데이터프레임을 비교해서 결측치인 값들을 NaN 으로 바꾸는 작업을 수행합니다.
 
 ```python
 for attribute in feat_info['attribute']:
@@ -255,7 +224,7 @@ for i in range(6):
         idx += 1
 ```
 
-![결측치가 20이상 그리고 20미만인 데이터셋 비교]()
+![결측치가 20이상 그리고 20미만인 데이터셋 비교](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/2021-09-03-Identify-Customer-Segments_compare_nan.png?raw=true)
 
 `more_nan_head` 의 값이 높은 경우는 14개, `under_nan_head`가 높은 경우는 8개입니다. `under_nan_head`는 남성이, `more_nan_head`는 여성이 더 많았습니다.
 
@@ -355,6 +324,9 @@ praegende_jugendjahre = {
     "14": [9, 0],
     "15": [9, 1],
 }
+generation = []
+movement = []
+
 azdias_without_outlier['PRAEGENDE_JUGENDJAHRE'].apply(create_new_feature_with_praegende_jugendjahre)
 
 azdias_without_outlier['GENERATION'] = generation
@@ -401,6 +373,348 @@ azdias_without_outlier = pd.get_dummies(azdias_without_outlier)
 
 ### 데이터를 클리닝하는 함수 만들기
 
+지금까지 수행했던 데이터 전처리 과정을 하나의 함수로 만드는 과제입니다.
+
+1. feature_info 에서 제시한 결측치를 활용해 실제 데이터의 결측치를 NaN 으로 바꿉니다.
+2. 결측치가 가장 높은 열 6개를 제거합니다.
+3. 범주형 특성, 숫자형 특성의 결측치를 최빈값으로 바꿉니다.
+4. 2개 또는 3개의 정보를 한번에 포함하고 있는 PRAEGENDE_JUGENDJAHRE 특성과 CAMEO_INTL_2015 특성을 각각 두 개의 특성으로 나누고 원래 특성을 제거합니다.
+5. 전처리를 완료한 데이터프레임을 반환합니다.
+
+```python
+def clean_data(df):
+    """
+    Perform feature trimming, re-encoding, and engineering for demographics
+    data
+
+    INPUT: Demographics DataFrame
+    OUTPUT: Trimmed and cleaned demographics DataFrame
+    """
+    target_df = df.copy()
+    # Put in code here to execute all main cleaning steps:
+    # convert missing value codes into NaNs, ...
+    ## 1. Convert missing or unknown values to NaN
+    for attribute in feat_info['attribute']:
+        missing_or_unknown = feat_info.loc[feat_info['attribute'] == attribute]['missing_or_unknown'].values[0]
+        target_df[attribute] = target_df[attribute].apply(lambda x: np.nan if x in missing_or_unknown else x)
+
+    print("1 ", target_df.shape)
+    # remove selected columns and rows, ...
+    ## 2. Drop columns which have missing values over 50%
+    target_df = target_df.drop(columns=['AGER_TYP', 'GEBURTSJAHR', 'TITEL_KZ',
+                                        'ALTER_HH','KK_KUNDENTYP','KBA05_BAUMAX'])
+    print("2 ", target_df.shape)
+    # select, re-encode, and engineer column values.
+    ## 3. Fill NaN value to the mode
+    ### 3-1. Categorical features
+    mode_of_categorical = customers.describe(include=np.object).iloc[2]
+    target_df['OST_WEST_KZ'] = target_df['OST_WEST_KZ'].fillna(mode_of_categorical[0])
+    target_df['CAMEO_DEUG_2015'] = target_df['CAMEO_DEUG_2015'].fillna(mode_of_categorical[1])
+    target_df['CAMEO_DEU_2015'] = target_df['CAMEO_DEU_2015'].fillna(mode_of_categorical[2])
+    target_df['CAMEO_INTL_2015'] = target_df['CAMEO_INTL_2015'].fillna(mode_of_categorical[3])
+    ### 3-2. Numeric but categorical features
+    mode_of_int_azdias = target_df[['ANREDE_KZ', 'FINANZ_MINIMALIST', 'FINANZ_SPARER', 'FINANZ_VORSORGER',
+       'FINANZ_ANLEGER', 'FINANZ_UNAUFFAELLIGER', 'FINANZ_HAUSBAUER',
+       'FINANZTYP', 'GREEN_AVANTGARDE', 'SEMIO_SOZ', 'SEMIO_FAM', 'SEMIO_REL',
+       'SEMIO_MAT', 'SEMIO_VERT', 'SEMIO_LUST', 'SEMIO_ERL', 'SEMIO_KULT',
+       'SEMIO_RAT', 'SEMIO_KRIT', 'SEMIO_DOM', 'SEMIO_KAEM', 'SEMIO_PFLICHT',
+       'SEMIO_TRADV', 'ZABEOTYP']].mode()
+    for idx in np.arange(24):
+        feature_name = mode_of_int_azdias.columns[idx]
+        mode = mode_of_int_azdias.values[0][idx]
+        target_df[feature_name] = target_df[feature_name].fillna(mode)
+    ### 3-3. Numeric features
+    mode_of_float_azdias = target_df[target_df.describe().columns]
+    for idx in np.arange(75):
+        feature_name = mode_of_float_azdias.columns[idx]
+        mode = mode_of_float_azdias.values[0][idx]
+        target_df[feature_name] = target_df[feature_name].fillna(mode)
+    print("3-3 ", target_df.shape)
+    ## 4. Dividing PRAEGENDE_JUGENDJAHRE into two features
+    ### 4-1. PRAEGENDE_JUGENDJAHRE => GENERATION | MOVEMENT
+    praegende_jugendjahre = {
+        "1": [4, 0],
+        "2": [4, 1],
+        "3": [5, 0],
+        "4": [5, 1],
+        "5": [6, 0],
+        "6": [6, 1],
+        "7": [6, 1],
+        "8": [7, 0],
+        "9": [7, 1],
+        "10": [8, 0],
+        "11": [8, 1],
+        "12": [8, 0],
+        "13": [8, 1],
+        "14": [9, 0],
+        "15": [9, 1],
+    }
+    generation = []
+    movement = []
+
+    def create_new_feature_with_praegende_jugendjahre(value):
+        value_astype_str = str(int(value))
+        generation.append(praegende_jugendjahre[value_astype_str][0])
+        movement.append(praegende_jugendjahre[value_astype_str][1])
+
+    target_df['PRAEGENDE_JUGENDJAHRE'].apply(create_new_feature_with_praegende_jugendjahre)
+    print("4-1 GENERATION length: ",target_df.shape[0], len(generation))
+    print("4-1 MOVEMENT length: ",target_df.shape[0], len(movement))
+    target_df['GENERATION'] = generation
+    target_df['MOVEMENT'] = movement
+    ### 4-2. CAMEO_INTL_2015 => WEALTH | LIFE
+    wealth_list = []
+    life_list = []
+    def create_new_feature_with_cameo_intl_2015(value):
+        wealth_list.append(value[0])
+        life_list.append(value[1])
+
+    target_df['CAMEO_INTL_2015'].apply(create_new_feature_with_cameo_intl_2015)
+
+    target_df['WEALTH'] = wealth_list
+    target_df['LIFE'] = life_list
+    ### 4-3. Drop original features, PRAEGENDE_JUGENDJAHRE and CAMEO_INTL_2015.
+    target_df = target_df.drop(columns=['PRAEGENDE_JUGENDJAHRE'])
+    target_df = target_df.drop(columns=['CAMEO_INTL_2015'])
+    ## 5. Applying one-hot-encoding to categorical features
+    target_df = pd.get_dummies(target_df)
+    # Return the cleaned dataframe.
+    return target_df
+```
+
 ## 특성 변환
 
-## 군집화 알고리즘을 적용하기
+### 특성 스케일링을 수행하기
+
+우선 결측치가 남아있는지를 확인합니다. 결측치가 없는 것을 확인했고 이제 스케일링을 수행할 수 있습니다.
+
+```python
+azdias_without_outlier.isna().sum().loc[isna_sum_series != 0]
+```
+
+```python
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(azdias_without_outlier)
+```
+
+결측치가 가장 많은 6개의 특성을 제거하고, 남은 결측치를 최빈값으로 교체를 해 두었기 때문에 `StandardScaler`를 실행할 때 에러가 발생하지 않았습니다. feature scaling 으로 891221개의 행과 141개의 열을 가진 ndarray `X_scaled`를 얻었습니다.
+
+### 차원 축소를 수행하기
+
+차원 축소 알고리즘 중 하나인 주성분 분석(PCA)를 이용해 데이터의 분산이 최대인 벡터를 찾습니다.
+
+우선 특성 전부를 주성분으로 분석해서 최적의 n_components 를 찾아봅니다.
+
+```python
+from sklearn.decomposition import PCA
+
+pca = PCA()
+pca.fit(X_scaled)
+X_pca = pca.transform(X_scaled)
+
+print("original data.shape: ", X_scaled.shape)
+print("reduced data.shape: ", X_pca.shape)
+print("PCA.components._shape: ", pca.components_.shape)
+# 설명된 분산의 비율을 그래프로 그려 적절한 주성분의 개수를 확인합니다.
+plt.plot(pca.explained_variance_ratio_)
+plt.show()
+```
+
+확인한 결과 20개의 주성분이 대부분의 분산을 표현하고 있었습니다. 이번에는 n_components 를 20으로 지정하고 PCA 를 실행하겠습니다.
+
+```python
+pca = PCA(n_components=20)
+pca.fit(X_scaled)
+
+X_pca = pca.transform(X_scaled)
+
+print('분산을 얼마나 유지하고 있는지의 비율: ', np.sum(pca.explained_variance_ratio_)) # 0.53
+```
+
+### 주성분을 해석하기
+
+주성분 3개의 가중치를 확인하고 정렬하여 관찰해봅니다. 주성분의 가중치를 특성의 이름과 연결시킨 데이터프레임을 만드는 함수를 작성하고, 주성분 3개를 입력해 결과를 얻습니다.
+
+```python
+def create_pca_weights_df(pca_idx):
+    weights_df = pd.DataFrame(pca.components_[pca_idx], index=azdias_without_outlier.columns,
+                             columns=['weights'])
+    weights_df.sort_values(ascending=False, by='weights', inplace=True)
+    return weights_df
+
+first_weights = create_pca_weights_df(0)
+second_weights = create_pca_weights_df(1)
+third_weights = create_pca_weights_df(2)
+```
+
+여기서 상위 10개의 가중치를 출력해 비교를 했습니다.
+
+```python
+first_weights.iloc[:10]
+second_weights.iloc[:10]
+third_weights.iloc[:10]
+```
+
+첫 번째 주성분의 가중치는 상위 10개 모두 0.13 ~ 0.19 사이로 고른 분포를 보인 반면, 나머지 두 주성분의 가중치는 일부만 큰 가중치를 보이며 나머지는 0.1 미만을 가지고 있었습니다. 가중치의 분포를 비교했을 때, 오직 "PLZ8_ANTG4"만 세 주성분 모두 가지고 있는 feature 였습니다. 그리고 두 주성분이 가지고 있는 feature 는 "PLZ8_BAUMAX", "ORTSGR_KLS9", "FINANZ_HAUSBAUER", "HH_EINKOMMEN_SCORE" 였습니다. 그만큼 세 주성분이 중요하다고 생각하는 특성은 달랐습니다.
+
+```python
+print('first - (> 0, <= 0)',
+    (len(first_weights.loc[first_weights['weights'] > 0]), len(first_weights.loc[first_weights['weights'] <= 0])))
+print('first - (> 0, <= 0)',
+    (len(second_weights.loc[second_weights['weights'] > 0]), len(second_weights.loc[second_weights['weights'] <= 0])))
+print('first - (> 0, <= 0)',
+    (len(third_weights.loc[third_weights['weights'] > 0]), len(third_weights.loc[third_weights['weights'] <= 0])))
+```
+
+세 주성분 모두 positive weight 와 negative weight 의 개수가 비슷합니다. 즉 모든 특성들 사이에 공통의 상호관계가 있는지, 그리고 각 특성들이 어떤 관계성을 띄고 있는지를 명확히 설명하기가 어렵다는 뜻입니다.
+
+## 군집 알고리즘
+
+### 인구 통계 데이터에 군집 알고리즘을 적용하기
+
+k-평균 알고리즘을 이용해서 PCA 로 변환한 데이터에 대해 군집화를 시도합니다.
+
+우선 최적의 클러스터 수(n_clusters)를 얻기 위해, 반복문으로 10개 ~ 30개 사이의 n_clusters 로 k-평균 알고리즘의 점수를 구합니다.
+
+```python
+cluster_range = np.arange(10, 30)
+
+inertia = []
+total_score = []
+
+for k in range(10, 30):
+    km = KMeans(n_clusters=k, random_state=0)
+    km.fit(X_pca)
+    inertia.append(km.inertia_)
+    total_score.append(km.score(X_pca))
+
+print("average within-cluster distances: ", total_score / len(total_score))
+```
+
+**이너셔**를 그래프로 그려 최적의 클러스터 수를 찾아봅니다. 이너셔는 클러스터 중심과 클러스터에 속한 샘플 사이의 거리의 제곱 합입니다. 이너셔로 클러스터에 속한 샘플이 얼마나 가깝게 모여있는지를 알 수 있으며, 이를 통해 최적의 클러스터를 찾을 수 있습니다.
+
+클러스터의 개수 k 를 X 축, 이너셔를 Y 축으로 잡은 그래프에서 선이 꺾이기 시작하는 지점을 최적의 클러스터 개수로 잡고, k-means 모델을 만들어 예측을 수행했습니다.
+
+```python
+plt.figure(figsize=(15, 6))
+plt.plot(range(10, 30), inertia)
+plt.title('Inertia of K-Means')
+plt.xlabel('K')
+plt.ylabel('inertia')
+plt.show()
+```
+
+기울기가 꺾이는 부분인 0이 최적의 클러스터 개수입니다. 이제 n_clusters 를 0개로 해서 모델을 만들고 인구 통게 데이터에 대해 예측을 수행합니다.
+
+```python
+km = KMeans(n_clusters=k, random_state=0)
+km.fit(X_pca)
+km_pred = km.predict(X_pca)
+print(km_pred)
+```
+
+### 고객 데이터에 모든 과정을 수행하기
+
+Udacity_CUSTOMERS_Subset.csv 에서 예측을 수행하기 위한 고객 데이터를 불러온 후, 학습했던 k-평균 모델으로 예측을 수행합니다.
+
+```python
+customers = pd.read_csv('Udacity_CUSTOMERS_Subset.csv', sep=';')
+costomers_df = clean_data(customers)
+
+km_customer_pred = km_customer.predict(costomers_df.to_numpy())
+print("Prediction for the customer demographics data:\n", km_customer_pred)
+```
+
+### 고객 데이터와 인구 통계 데이터를 비교하기
+
+이번에는 독일의 인구 통계 데이터와 메일-주문 회사의 고객 데이터 두 개의 군집을 비교해서 회사에게 가장 강력한 고객의 기반이 어디인지를 확인합니다.
+
+1. 고객 데이터와 인구 통계 데이터에 대해 각각의 클러스터 데이터 비율을 비교해봅니다. `countplot`으로 전체 개수를 보여주는 대신, 클러스터가 데이터에서 차지하는 비중을 퍼센트르 보여주는 `barplot`으로 작성했습니다. 참고한 코드는 [Add percentages instead of counts to countplot #1027](https://github.com/mwaskom/seaborn/issues/1027#issuecomment-250456545)에서 확인하실 수 있습니다.
+
+```python
+df_azdias_pred = pd.DataFrame(dict(x=km_azdias_pred))
+df_customer_pred = pd.DataFrame(dict(x=km_customer_pred))
+
+fig, axs = plt.subplots(1, 2, figsize=(17, 12))
+
+sns.barplot(x='x', y='x', data=df_azdias_pred, ax=axs[0],
+           estimator=lambda x: len(x) / len(df_azdias_pred) * 100)
+axs[0].set_title("Propotion of data for general population")
+
+sns.barplot(x='x', y='x', data=df_customer_pred, ax=axs[1],
+           estimator=lambda x: len(x) / len(df_customer_pred) * 100)
+axs[1].set_title("Propotion of data for customers")
+plt.show()
+```
+
+2. 인구 통계 데이터에 비해 고객 데이터에서 과대평가되는 클러스터에 속한 사람들이 누구인지를 찾아봅니다.
+
+인구 통계 데이터에 비해 고객 데이터에서 확연히 높은 부분은 3번 클러스터입니다. 우선 이 클러스터를 `inverse_transform()`으로 복원합니다. 그 다음 복원한 ndarray 로 데이터프레임을 만들고, 3번 클러스터에 대한 정보만을 추출하여 `describe()`로 요약된 정보를 얻습니다.
+
+```python
+reversed_azdias = pca.inverse_transform(X_pca)
+reversed_customer = pca.inverse_transform(target_pca)
+
+reversed_azdias_df = pd.DataFrame(reversed_azdias, columns=azdias_without_outlier.columns)
+reversed_customer_df = pd.DataFrame(reversed_customer, columns=azdias_without_outlier.columns)
+
+cluster_3_azdias_describe = reversed_azdias_df.iloc[cluster_3_azdias_idx].describe()
+cluster_3_customers_describe = reversed_customer_df.iloc[cluster_3_customers_idx].describe()
+```
+
+마지막으로 산점도를 그리는 함수를 작성해서 평균과 표준편차에 대한 그래프를 얻습니다.
+
+```python
+def create_cluster_info_scatter(title, first_y, second_y):
+    plt.figure(figsize=(20,7))
+    plt.title(title)
+    plt.scatter(x=azdias_without_outlier.columns, y=first_y)
+    plt.scatter(x=azdias_without_outlier.columns, y=second_y)
+    plt.xticks([])
+    plt.xlabel('features')
+    plt.legend(['General population', 'Customers'])
+    plt.show()
+
+create_cluster_info_scatter("Overpresented Cluster 3 - Feature's mean",
+                           cluster_3_azdias_describe.iloc[1], cluster_3_customers_describe.iloc[1])
+```
+
+![클러스터 3: 평균의 산점도](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/2021-09-03-Identify-Customer-Segments_cluster3_mean.png?raw=true)
+
+평균의 산점도를 보면 전반부에서는 간격이 좁게 뭉쳐있지만, 후반으로 갈수록 넓게 퍼지는 양상을 띄고 있습니다. 두 데이터를 비교했을 때 전체적인 흐름은 비슷하지만, 고객 데이터는 인구 통계 데이터에 비해 각 점들 사이의 거리가 더 가깝습니다.
+
+```python
+create_cluster_info_scatter("Overpresented Cluster 3 - Feature's std",
+                           cluster_3_azdias_describe.iloc[2], cluster_3_customers_describe.iloc[2])
+```
+
+![클러스터 3: 표준편차의 산점도](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/2021-09-03-Identify-Customer-Segments_segments_cluster3_std.png?raw=true)
+
+표준편차의 산점도에서는 고객의 데이터는 인구 통계 데이터보다 전반적으로 아래에 있는 경우가 많았고, 간격의 높낮이도 인구 통계 데이터보다 완만합니다.
+
+3. 인구 통계 데이터에 비해 고객 데이터에서 과도하게 저평가되는 클러스터에 속한 사람들이 누구인지를 찾아봅니다.
+
+2, 5, 9, 11에서 가장 차이가 크게 나는 것은 9번 클러스터로 9번 클러스터에 대한 평균의 산점도, 표준편차의 산점도를 그려봅니다.
+
+```python
+create_cluster_info_scatter("Overpresented Cluster 9 - Feature's mean",
+                           cluster_9_azdias_describe.iloc[1], cluster_9_customers_describe.iloc[1])
+```
+
+![클러스터 9: 평균의 산점도](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/2021-09-03-Identify-Customer-Segments_cluster9_mean.png?raw=true)
+
+3번 클러스터와 달리 전반적으로 고르게 분포된 모습을 보입니다. 또한 고객의 데이터가 인구 통계 데이터보다 점 사이의 간격이 좁고 뭉쳐있다는 점 역시 비슷합니다.
+
+```python
+create_cluster_info_scatter("Overpresented Cluster 3 - Feature's std",
+                           cluster_9_azdias_describe.iloc[2], cluster_9_customers_describe.iloc[2])
+```
+
+![클러스터 9: 표준편차의 산점도](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/2021-09-03-Identify-Customer-Segments_cluster9_std.png?raw=true)
+
+표준편차의 산점도 역시 전반적인 흐름은 3번 클러스터와 비슷하지만, 9번 클러스터의 고객 데이터의 표준편차는 3번보다 가파른 높낮이를 보이고 있습니다.
+
+## 프로젝트를 마치며
+
+지금까지 했던 프로젝트와 달리 실제 독일의 인구 통계 데이터로 전처리에서부터 예측까지 모든 과정을 거치며 비지도 학습을 수행할 수 있었습니다. 어려웠던 점은 우선 책이나 강의에서 다뤘던 알기 쉽고 수가 적었던 특성들이, 이번 데이터에서는 특성이 85개에 되도록 많은 정보를 담기 위해 한 특성에 두 세개의 정보를 압축해 이해하기 어려웠던 것입니다. 이해하기 어려운 상태에서 전처리를 하고 비교를 하며 난감함을 느꼈지만, 실무에서는 다루는 독립 변수만 몇 백개가 넘는 경우가 많다고 들었기에 실무에 대해 조금이나마 겉핥기를 했다고 생각합니다. 비록 인구 통계에 대한 전문 용어나 지식은 부족했던 점, 그리고 통계학적인 지식이 부족해 전처리와 데이터 간 비교를 매끄럽게 수행하지 못해 아직 많이 부족하다는 것을 느꼈습니다.
