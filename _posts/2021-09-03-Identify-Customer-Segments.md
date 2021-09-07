@@ -296,9 +296,7 @@ for idx in np.arange(75):
     azdias_without_outlier[feature_name] = azdias_without_outlier[feature_name].fillna(mode)
 ```
 
-우선 데이터는 가장 결측치가 많던 6개의 특성을 제외한 것을 사용했습니다. 그리고 범주형 특성은 4개, 숫자 형태의 범주형 특성은 24개가 있다는 것을 `describe()` method 로 확인했습니다.
-
-다음에는 결측치를 각 특성의 최빈값으로 변경했습니다.
+우선 데이터는 가장 결측치가 많던 6개의 특성을 제외한 것을 사용했습니다. 그리고 범주형 특성은 4개, 숫자 형태의 범주형 특성은 24개가 있다는 것을 `describe()` method 로 확인했습니다. 그리고 결측치를 각 특성의 최빈값으로 변경했습니다.
 
 #### PRAEGENDE_JUGENDJAHRE, CAMEO_INTL_2015 특성을 조사하고 다시 설계하기
 
@@ -616,13 +614,19 @@ print(km_pred)
 
 ### 고객 데이터에 모든 과정을 수행하기
 
-Udacity_CUSTOMERS_Subset.csv 에서 예측을 수행하기 위한 고객 데이터를 불러온 후, 학습했던 k-평균 모델으로 예측을 수행합니다.
+Udacity_CUSTOMERS_Subset.csv 에서 예측을 수행하기 위한 고객 데이터를 불러온 후, 학습했던 k-평균 모델으로 예측을 수행합니다. 참고로 고객 데이터를 `StandardScaler`로 변환할 때 반드시 *인구 통계 데이터를 변환했던 scaler 로 변환해야 한다는 것*입니다.
 
 ```python
 customers = pd.read_csv('Udacity_CUSTOMERS_Subset.csv', sep=';')
 costomers_df = clean_data(customers)
 
-km_customer_pred = km_customer.predict(costomers_df.to_numpy())
+
+target_scaled = scaler.transform(costomers_df)
+pca = PCA(n_components=20)
+pca.fit(target_scaled)
+target_pca = pca.transform(target_scaled)
+
+km_customer_pred = km_customer.predict(target_pca)
 print("Prediction for the customer demographics data:\n", km_customer_pred)
 ```
 
@@ -648,9 +652,11 @@ axs[1].set_title("Propotion of data for customers")
 plt.show()
 ```
 
+![고객 클러스터와 인구 통계 클러스터의 비율](https://raw.githubusercontent.com/chinsanchung/chinsanchung.github.com/master/assets/images/2021-09-03-Identify-Customer-Segments_compare_clusters_percentage.png?raw=true)
+
 2. 인구 통계 데이터에 비해 고객 데이터에서 과대평가되는 클러스터에 속한 사람들이 누구인지를 찾아봅니다.
 
-인구 통계 데이터에 비해 고객 데이터에서 확연히 높은 부분은 3번 클러스터입니다. 우선 이 클러스터를 `inverse_transform()`으로 복원합니다. 그 다음 복원한 ndarray 로 데이터프레임을 만들고, 3번 클러스터에 대한 정보만을 추출하여 `describe()`로 요약된 정보를 얻습니다.
+0번 클러스터의 경우, 인구 통계에서는 6% 초반이지만 고객 데이터에서는 25%를 넘고 있기 때문에 과대평가되는 클러스터라고 할 수 있습니다. 우선 이 클러스터를 `inverse_transform()`으로 복원합니다. 그 다음 복원한 ndarray 로 데이터프레임을 만들고, 0번 클러스터에 대한 정보만을 추출하여 `describe()`로 요약된 정보를 얻습니다.
 
 ```python
 reversed_azdias = pca.inverse_transform(X_pca)
@@ -680,7 +686,7 @@ create_cluster_info_scatter("Overpresented Cluster 3 - Feature's mean",
                            cluster_3_azdias_describe.iloc[1], cluster_3_customers_describe.iloc[1])
 ```
 
-![클러스터 3: 평균의 산점도](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/2021-09-03-Identify-Customer-Segments_cluster3_mean.png?raw=true)
+![클러스터 3: 평균의 산점도](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/2021-09-03-Identify-Customer-Segments_overrepresented_mean.png?raw=true)
 
 평균의 산점도를 보면 전반부에서는 간격이 좁게 뭉쳐있지만, 후반으로 갈수록 넓게 퍼지는 양상을 띄고 있습니다. 두 데이터를 비교했을 때 전체적인 흐름은 비슷하지만, 고객 데이터는 인구 통계 데이터에 비해 각 점들 사이의 거리가 더 가깝습니다.
 
@@ -689,13 +695,13 @@ create_cluster_info_scatter("Overpresented Cluster 3 - Feature's std",
                            cluster_3_azdias_describe.iloc[2], cluster_3_customers_describe.iloc[2])
 ```
 
-![클러스터 3: 표준편차의 산점도](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/2021-09-03-Identify-Customer-Segments_segments_cluster3_std.png?raw=true)
+![클러스터 3: 표준편차의 산점도](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/2021-09-03-Identify-Customer-Segments_segments_underrepresented_std.png?raw=true)
 
-표준편차의 산점도에서는 고객의 데이터는 인구 통계 데이터보다 전반적으로 아래에 있는 경우가 많았고, 간격의 높낮이도 인구 통계 데이터보다 완만합니다.
+표준편차의 산점도에서는 고객의 데이터와 인구 통계 데이터 모두 비슷한 형태를 띄고 있습니다. 다만 고객의 데이터 쪽의 높낮이가 조금 더 가파른 것으로 보입니다.
 
 3. 인구 통계 데이터에 비해 고객 데이터에서 과도하게 저평가되는 클러스터에 속한 사람들이 누구인지를 찾아봅니다.
 
-2, 5, 9, 11에서 가장 차이가 크게 나는 것은 9번 클러스터로 9번 클러스터에 대한 평균의 산점도, 표준편차의 산점도를 그려봅니다.
+2, 3, 4, 6, 7, 9, 10, 11, 17, 19, 20 중에서 가장 차이가 크게 나는 것은 인구 통계 데이터에서 9% 이상, 고객의 데이터에서는 5% 보다 더 낮은 9번 클러스터입니다.
 
 ```python
 create_cluster_info_scatter("Overpresented Cluster 9 - Feature's mean",
@@ -704,7 +710,7 @@ create_cluster_info_scatter("Overpresented Cluster 9 - Feature's mean",
 
 ![클러스터 9: 평균의 산점도](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/2021-09-03-Identify-Customer-Segments_cluster9_mean.png?raw=true)
 
-3번 클러스터와 달리 전반적으로 고르게 분포된 모습을 보입니다. 또한 고객의 데이터가 인구 통계 데이터보다 점 사이의 간격이 좁고 뭉쳐있다는 점 역시 비슷합니다.
+3번 클러스터의 평균의 산점도와 비슷한 형태를 띄고 있지만, 전체적으로 점들이 Y 축으로 넢게 분포되어 있습니다. 전반부에서는 두 데이터의 차이가 그리 크지 않지만, 후반부에서는 고객 데이터의 위아래의 간격이 조금 더 가깝습니다.
 
 ```python
 create_cluster_info_scatter("Overpresented Cluster 3 - Feature's std",
@@ -713,7 +719,7 @@ create_cluster_info_scatter("Overpresented Cluster 3 - Feature's std",
 
 ![클러스터 9: 표준편차의 산점도](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/2021-09-03-Identify-Customer-Segments_cluster9_std.png?raw=true)
 
-표준편차의 산점도 역시 전반적인 흐름은 3번 클러스터와 비슷하지만, 9번 클러스터의 고객 데이터의 표준편차는 3번보다 가파른 높낮이를 보이고 있습니다.
+전체적으로 고객 데이터의 표준편차가 변동성이 높고 인구 통계 데이터의 표준편차보다 큰 값이 많습니다. 반면 인구 통계 데이터는 완만한 곡선의 형태를 띄고 있습니다.
 
 ## 프로젝트를 마치며
 
