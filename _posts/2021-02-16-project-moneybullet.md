@@ -43,15 +43,15 @@ tags:
 
 목록 페이지의 스크린샷입니다.
 
-[매장 목록 보기](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/moneybullet-01.PNG?raw=true)
+![매장 목록 보기](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/moneybullet-01.PNG?raw=true)
 
-[상품 목록 보기](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/moneybullet-02.PNG?raw=true)
+![상품 목록 보기](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/moneybullet-02.PNG?raw=true)
 
 다음은 매장 목록의 두 항목을 체크해 비교하는 모달입니다.
 
-[두 매장을 비교하는 모달](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/moneybullet-03.PNG?raw=true)
+![두 매장을 비교하는 모달](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/moneybullet-03.PNG?raw=true)
 
-[두 상품을 비교하는 모달](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/moneybullet-04.PNG?raw=true)
+![두 상품을 비교하는 모달](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/moneybullet-04.PNG?raw=true)
 
 ### 보기 페이지
 
@@ -60,9 +60,9 @@ tags:
 
 보기 페이지의 스크린샷입니다.
 
-[매장 상세 보기](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/moneybullet-05.PNG?raw=true)
+![매장 상세 보기](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/moneybullet-05.PNG?raw=true)
 
-[상품 상세 보기](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/moneybullet-06.PNG?raw=true)
+![상품 상세 보기](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/moneybullet-06.PNG?raw=true)
 
 ## 작업 1. 데이터 가공하기
 
