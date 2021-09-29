@@ -1,5 +1,5 @@
 ---
-title: "MoneyBullet 프로젝트 제작기"
+title: 'MoneyBullet 프로젝트 제작기'
 layout: single
 author_profile: false
 read_time: false
@@ -43,15 +43,15 @@ tags:
 
 목록 페이지의 스크린샷입니다.
 
-[매장 목록 보기](https://drive.google.com/file/d/141IrCgMdjv_Xk-25nLoDJiWE93xgG62N/view?usp=sharing)
+[매장 목록 보기](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/moneybullet-01.PNG?raw=true)
 
-[상품 목록 보기](https://drive.google.com/file/d/1p7EOkTvcUlSi4O9WgNHj2KkiQjTpPK2E/view?usp=sharing)
+[상품 목록 보기](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/moneybullet-02.PNG?raw=true)
 
 다음은 매장 목록의 두 항목을 체크해 비교하는 모달입니다.
 
-[두 매장을 비교하는 모달](https://drive.google.com/file/d/1eN2r60M6Eis8u5aJCVlB0z8mRBs5iKqp/view?usp=sharing)
+[두 매장을 비교하는 모달](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/moneybullet-03.PNG?raw=true)
 
-[두 상품을 비교하는 모달](https://drive.google.com/file/d/1izelIqmK2TVZkTF-FJEwEXcWKtaLiNKz/view?usp=sharing)
+[두 상품을 비교하는 모달](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/moneybullet-04.PNG?raw=true)
 
 ### 보기 페이지
 
@@ -60,9 +60,9 @@ tags:
 
 보기 페이지의 스크린샷입니다.
 
-[매장 상세 보기](https://drive.google.com/file/d/1mlyrlurF9q_SOmirALwmujB6C8gWfovD/view?usp=sharing)
+[매장 상세 보기](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/moneybullet-05.PNG?raw=true)
 
-[상품 상세 보기](https://drive.google.com/file/d/1sZS4cQvgzTZ54q1xfndQB1HPHf2kbUqS/view?usp=sharing)
+[상품 상세 보기](https://github.com/chinsanchung/chinsanchung.github.com/blob/master/assets/images/moneybullet-06.PNG?raw=true)
 
 ## 작업 1. 데이터 가공하기
 
@@ -75,7 +75,7 @@ tags:
 
 ```javascript
 // $let, $filter 예시 - 매장의 경우
-const previousProfit = "aggregate문으로 구한 이전 기간 매출액";
+const previousProfit = 'aggregate문으로 구한 이전 기간 매출액';
 const response = await Data.aggregate([
   // 그룹화는 생략하고 $let, $filter 함수만 보여드리겠습니다.
   {
@@ -83,7 +83,7 @@ const response = await Data.aggregate([
       previousProfit: {
         $let: {
           vars: { value: previousProfit },
-          in: "$$value",
+          in: '$$value',
         },
       },
     },
@@ -93,10 +93,10 @@ const response = await Data.aggregate([
       _id: 0,
       previousProfit: {
         $filter: {
-          input: "$previousProfit",
-          as: "prevVal",
+          input: '$previousProfit',
+          as: 'prevVal',
           cond: {
-            $eq: ["$$prevVal.shopName", "$_id.shopName"],
+            $eq: ['$$prevVal.shopName', '$_id.shopName'],
           },
         },
       },
@@ -118,15 +118,15 @@ const response = await Data.aggregate([
   {
     $group: {
       _id: null,
-      data: { $push: "$$ROOT" },
+      data: { $push: '$$ROOT' },
     },
   },
-  { $unwind: { path: "$data", includeArrayIndex: "serial_number" } },
+  { $unwind: { path: '$data', includeArrayIndex: 'serial_number' } },
   {
     $project: {
       _id: 0,
-      name: "$data.name",
-      previousProfit: "$data.previousProfit",
+      name: '$data.name',
+      previousProfit: '$data.previousProfit',
       // 나머지 선언은 생략합니다.
     },
   },
@@ -240,14 +240,14 @@ const CustomXTic = ({x, y, stroke, payload}) => {
 // 원래는 날짜 조건을 컴포넌트화해서 date, period 를 props로 내려받았지만,
 // 여기서는 이해를 돕기 위해 값을 직접 구했습니다.
 // URL 쿼리 문자열을 객체로 변환합니다. 참고로 객체를 문자열로 바꾸는 stringify 함수도 가지고 있습니다.
-import { parse } from "query-string";
-import { useLocation } from "react-router-dom";
+import { parse } from 'query-string';
+import { useLocation } from 'react-router-dom';
 
 const location = useLocation();
 // date: 2021.02.17, period: 7
 const { date, period } = parse(location.search);
 
-const dateString = date.split(".").join("-");
+const dateString = date.split('.').join('-');
 const dateObj = new Date(dateString);
 const fourthDate = new Date(dateString);
 const thirdDate = new Date(dateObj.setDate(dateObj.getDate() - period + 1));
