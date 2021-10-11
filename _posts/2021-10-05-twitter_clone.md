@@ -16,7 +16,7 @@ tags:
   - toy_project
 ---
 
-[주소](https://witterclone.herokuapp.com/)
+[주소](https://witterclone.herokuapp.com)
 
 ## 백엔드 프로젝트의 구조와 설계
 
@@ -92,6 +92,8 @@ export default class ReadingService implements IReadingService {
 
 ## 트위터의 기능 구현하기
 
+트위터의 일부 기능들을 구현하면서 기억에 남는 점 몇 가지를 설명하고자 합니다.
+
 ### 타임라인
 
 타임라인이란 간단하게 정의하자면 트윗들의 모음으로, 로그인한 사용자의 홈 타임라인과 특정 사용자의 타임라인 두 가지로 구분합니다.
@@ -101,14 +103,83 @@ export default class ReadingService implements IReadingService {
 
 처음에는 트윗 컬렉션 하나만으로 타임라인을 구현할 수 있을 거라 생각했습니다. 그렇게 구현하려면 아래의 과정으로 타임라인을 가져옵니다.
 
-1. 로그인한 사용자가 작성하고 리트윗한 모든 트윗들을 가져옵니다.
+1. 로그인한 사용자가 작성한 모든 트윗들을 가져옵니다.
 2. 로그인한 사용자의 팔로워 목록을 가져오고, 해당 user_id 를 작성자로 하는 트윗들 전부를 가져옵니다.
 3. 그 트윗들을 전부 합친 후, 시간순으로 내림차순하여 타임라인을 만듭니다.
 
-타임라인을 만든다면 얻을 수 있는 이점은 어떤 것이 있을까요?
+이 방식의 문제점은 여러 개의 aggregate 쿼리문을 작성하게 되어, 트윗들을 합치고 정렬하는 것을 직접 수행해야 합니다. 또한, 리트윗은 트윗의 작성일이 아니라 리트윗을 수행한 날짜를 정렬의 기준으로 삼아야 합니다. 그러면 정렬을 할 때마다 조건문으로 리트윗인지 아닌지를 체크하고 그만큼 시간을 소요하게 됩니다.
 
-1. 로그인한 사용자의 타임라인 데이터를 가져옵니다. 거기에 담긴 tweet_id 를 통해 트윗의 정보를 가져옵니다.
-2. 팔로워 목록의 user_id 를 이용해 각 사용자의 타임라인을 가져옵니다. 또한 tweet_id 를 통해 트윗의 정보를 가져옵니다.
-3. 1번과 2번에서 가져온 트윗들을 시간순으로 내림차순하여 타임라인을 만듭니다.
+그래서 결국 타임라인 컬렉션을 직접 만들고 여기에는 사용자의 아이디와 트윗 목록, 마음에 들어요 목록을 넣게 되는데, 각 목록에는 트윗의 아이디와 타임라인에 등록한 시간 그리고 리트윗인지 아닌지 여부를 담는 객체입니다. 이렇게 하면 다음과 같은 절차를 수행하게 됩니다.
 
-## heroku 로 배포하기
+1. 로그인한 사용자의 타임라인 데이터를 가져옵니다. tweet_list 에 담긴 tweet_id 를 통해 트윗의 정보를 가져옵니다.
+2. 팔로워 목록의 user_id 를 이용해 각 사용자의 타임라인을 가져옵니다. 마찬가지로 tweet_id 로 트윗의 정보를 가져옵니다.
+3. 1번과 2번에서 가져온 트윗들을 등록한 시간순으로 내림차순하여 타임라인을 만듭니다.
+
+따라서 하나의 쿼리문으로 완성할 수 있어서 시간 순으로 정렬하기 수월해졌고, 트윗의 작성일 대신 타임라인에 등록한 날짜를 등록하게 되어 리트윗에도 유연하게 대응할 수 있게 되었습니다.
+
+### 로그인 여부 인증하기
+
+트윗의 작성, 리트윗 등 로그인을 해야만 사용할 수 있는 기능들이 있습니다. 로그인 인증을 위한 미들웨어가 필요한데, passport 에서 지원하는 isAuthenticated() 메소드를 이용했습니다.
+
+isAuthenticated() 는 `req.isAuthenticated()`로 실행하는데, 작동원리는 passport 를 이용해 로그인을 했을 때 request 영역에 생성되는 user 객체를 실제로 가지고 있는지를 확인하는 것입니다.
+
+```javascript
+// Passport 모듈의 lib/http/request.js 에서 가져왔습니다.
+
+/**
+ * Test if request is authenticated.
+ *
+ * @return {Boolean}
+ * @api public
+ */
+req.isAuthenticated = function () {
+  var property = this._userProperty || 'user';
+  return this[property] ? true : false;
+};
+
+/**
+ * Test if request is unauthenticated.
+ *
+ * @return {Boolean}
+ * @api public
+ */
+req.isUnauthenticated = function () {
+  return !this.isAuthenticated();
+};
+```
+
+특이하게도 Passport 의 공식문서에는 isAuthenticated 대한 설명이 없지만 [Node.js 교과서](http://www.yes24.com/product/goods/62597864)를 그 존재를 알았고, 덕분에 간편하게 인증 미들웨어를 생성할 수 있었습니다.
+
+(참고로 깃허브 이슈에 이에 대한 [문의사항](https://github.com/jaredhanson/passport/issues/683)이 있는데, 메소드에 대한 설명을 풀 리퀘스트를 보냈지만 아직도 머지를 하지 않았다고 합니다.)
+
+## 빌드 후 배포하기
+
+마지막으로 프로젝트를 빌드해서 실제 사이트에 배포하는 과정에서 겪은 과정을 설명드리고자 합니다. 저는
+헤로쿠(Heroku)를 이용했습니다. 헤로쿠는 앱의 배포와 실행을 돕는 플랫폼으로 무료로 이용할 수 있다는 점이 큰 장점입니다. Node 뿐만 아니라 Ruby, Java, PHP, Python. Go 등 다양한 코드를 지원합니다.
+
+여기서 저는 Node 를 선택해서 배포를 진행했는데, 그 과정에서 여러 문제를 겪었습니다.
+
+- `npm start` 스크립트를 실행하지 못하는 문제
+
+깃허브 레포지토리를 연결한 후 처음으로 배포를 진행했는데 다음과 같은 에러가 발생했습니다.
+
+```
+Failed at the twitter_clone_server@1.0.0 start script.
+This is probably not a problem with npm. There is likely additional logging output above.
+```
+
+스크립트를 실행하질 못했다는 내용인데, [헤로쿠에서는 devDependencies 에 있는 의존성을 설치하지 않는데](https://stackoverflow.com/a/68676440), `npm start` 스크립트에 개발 의존성으로 설치했던 `cross-env`를 작성한 것이 원인임을 찾아냈습니다. 즉, 헤로쿠에서 `cross-env` 모듈을 설치하지 않아 스크립트에 있는 cross-env 를 인식하지 못해서 생긴 것이었습니다.
+
+따라서 스크립트의 내용을 `node dist/index.js`으로 수정해서 오직 "node 로 빌드한 폴더 dist 안의 index.js 를 실행하라"는 명령만 내리도록 했습니다.
+
+- process.env 환경 변수 설정
+
+개발을 할 때는 `dotenv`라는 모듈을 이용해서 민감한 설정들을 .env 파일에 저장해서 사용해왔습니다. 하지만 헤로쿠에서는 Config Vars 설정에서 환경변수를 등록해야 합니다.
+
+- PORT 설정
+
+AWS Beanstalk 에서는 배포를 할 때의 포트를 8080으로 지정합니다. 그래서 처음에는 헤로쿠도 배포용 포트를 따로 지정해야 하는줄 알았습니다. 하지만 stack overflow 의 [Setting the port for node.js server on Heroku](https://stackoverflow.com/a/51572239)을 통해 헤로쿠는 PORT 환경변수로 동적으로 포트를 할당하고 있다는 것을 알게 되었고, 따라서 아래처럼 포트의 설정을 수정했습니다.
+
+```javascript
+private PORT = process.env.PORT || 5000;
+```
