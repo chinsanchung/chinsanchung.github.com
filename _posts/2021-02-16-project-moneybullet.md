@@ -7,7 +7,7 @@ comments: false
 share: true
 related: true
 categories:
-  - web
+  - review
 toc: true
 toc_sticky: true
 toc_labe: 목차

@@ -13,6 +13,7 @@ toc_sticky: true
 toc_labe: 목차
 description: Introduction to Machine Learning with TensorFlow 의 세 번째 프로젝트 "Identify Customer Segments"를 어떻게 작성했는지 설명합니다.
 tags:
+  - Udacity
   - nanodegree
 ---
 

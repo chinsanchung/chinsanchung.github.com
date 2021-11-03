@@ -1,5 +1,5 @@
 ---
-title: "Mongo DB 적응기"
+title: 'Mongo DB 적응기'
 layout: single
 author_profile: false
 read_time: false
@@ -7,7 +7,7 @@ comments: false
 share: true
 related: true
 categories:
-  - database
+  - experience
 toc: true
 toc_sticky: true
 toc_labe: 목차
@@ -27,16 +27,16 @@ mongoDB 클라우드 매니지 서비스인 [MongoDB Atlas](https://www.mongodb.
 
 ```javascript
 // src/database.js
-const mongoUrl = "MongoDB Atlas에서 가져온 connection string";
+const mongoUrl = 'MongoDB Atlas에서 가져온 connection string';
 mongoose.connect(mongoUrl, { useNewUrlParser: true, useFindAndModify: false });
 const database = mongoose.connection;
 
-const handleOpen = () => console.log("Connected to Database");
+const handleOpen = () => console.log('Connected to Database');
 const handleError = (error) =>
   console.log(`Error on Database Connection: ${error}`);
 
-database.once("open", handleOpen);
-database.on("error", handleError);
+database.once('open', handleOpen);
+database.on('error', handleError);
 ```
 
 ## 2. 컬렉션 스키마, 모델 설정하기
@@ -49,10 +49,10 @@ const schema = new mongoose.Schema({
   title: { type: String, required: true },
   contents: { type: String, required: true },
   registered: { type: Date, default: Date.now },
-  writerId: { type: mongoose.Types.ObjectId, ref: "users", required: true },
+  writerId: { type: mongoose.Types.ObjectId, ref: 'users', required: true },
 });
 
-const model = mongoose.model("boards", schema);
+const model = mongoose.model('boards', schema);
 
 export default model;
 ```
@@ -67,8 +67,8 @@ export default model;
 
 ```javascript
 // src/controller/Board.js
-import Board from "./../model/Board.js";
-import User from "./../model/User.js";
+import Board from './../model/Board.js';
+import User from './../model/User.js';
 
 const getOne = async (req, res) => {
   try {
@@ -78,8 +78,8 @@ const getOne = async (req, res) => {
 
     res.json({ ...boardInfo, writerName: userInfo.name });
   } catch (error) {
-    console.log("board - getOne error", error);
-    res.status(500).send("getOne error");
+    console.log('board - getOne error', error);
+    res.status(500).send('getOne error');
   }
 };
 ```
@@ -93,24 +93,24 @@ const aggregateOption = [
   { $match: { _id: mongoose.Types.ObjectId(id) } },
   {
     $lookup: {
-      from: "users",
-      let: { userId: "$writerId" },
+      from: 'users',
+      let: { userId: '$writerId' },
       pipeline: [
-        { $match: { $expr: { $eq: ["$_id", "$$userId"] } } },
-        { $project: { _id: 1, name: "$name" } },
+        { $match: { $expr: { $eq: ['$_id', '$$userId'] } } },
+        { $project: { _id: 1, name: '$name' } },
       ],
-      as: "userInfo",
+      as: 'userInfo',
     },
   },
-  { $unwind: "$userInfo" },
+  { $unwind: '$userInfo' },
   {
     $set: {
-      writerName: "$userInfo.name",
+      writerName: '$userInfo.name',
       registered: {
         $dateToString: {
-          format: "%Y-%m-%d",
-          timezone: "+09:00",
-          date: "$registered",
+          format: '%Y-%m-%d',
+          timezone: '+09:00',
+          date: '$registered',
         },
       },
     },
@@ -128,13 +128,13 @@ const aggregateOption = [
   {
     $set: {
       totalScore: {
-        $add: ["$korean", "$math", "$english", "$society", "$science"],
+        $add: ['$korean', '$math', '$english', '$society', '$science'],
       },
       testedAt: {
         $dateToString: {
-          format: "%Y-%m-%d",
-          timezone: "+09:00",
-          date: "$testedAt",
+          format: '%Y-%m-%d',
+          timezone: '+09:00',
+          date: '$testedAt',
         },
       },
     },
@@ -146,8 +146,8 @@ const aggregateOption = [
       class: 1,
       testedAt: 1,
       totalScore: 1,
-      meanScore: { $divide: ["$totalScore", 5] },
-      isPassed: { $cond: [{ $gte: ["$totalScore", 350] }, "통과", "재시험"] },
+      meanScore: { $divide: ['$totalScore', 5] },
+      isPassed: { $cond: [{ $gte: ['$totalScore', 350] }, '통과', '재시험'] },
     },
   },
 ];
@@ -161,25 +161,25 @@ const aggregateOption = [
 
 ```javascript
 // src/model/Board.js
-import autoIncrement from "mongoose-auto-increment";
+import autoIncrement from 'mongoose-auto-increment';
 
 const schema = new mongoose.Schema({
   serial: Number,
   title: { type: String, required: true },
   contents: { type: String, required: true },
   registered: { type: Date, default: Date.now },
-  writerId: { type: mongoose.Types.ObjectId, ref: "users", required: true },
+  writerId: { type: mongoose.Types.ObjectId, ref: 'users', required: true },
 });
 
 autoIncrement.initialize(mongoose.connection);
 schema.plugin(autoIncrement.plugin, {
-  model: "boards",
-  field: "serial",
+  model: 'boards',
+  field: 'serial',
   startAt: 1,
   increment: 1,
 });
 
-const model = mongoose.model("boards", schema);
+const model = mongoose.model('boards', schema);
 
 export default model;
 ```

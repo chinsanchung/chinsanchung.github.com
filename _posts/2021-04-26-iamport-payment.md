@@ -1,5 +1,5 @@
 ---
-title: "아임포트 결제 기능 도입기"
+title: '아임포트 결제 기능 도입기'
 layout: single
 author_profile: false
 read_time: false
@@ -7,7 +7,7 @@ comments: false
 share: true
 related: true
 categories:
-  - web
+  - experience
 toc: true
 toc_sticky: true
 toc_labe: 목차
@@ -41,25 +41,25 @@ function IamportLibrary() {
   useEffect(() => {
     const loadSdk = () => {
       const jqueryPromise = new Promise((res, rej) => {
-        const library = document.querySelector("#jquery-sdk");
+        const library = document.querySelector('#jquery-sdk');
         if (library) {
           res();
         } else {
-          const jquery = document.createElement("script");
-          jquery.id = "jquery-sdk";
-          jquery.src = "//code.jquery.com/jquery-3.6.0.min.js";
+          const jquery = document.createElement('script');
+          jquery.id = 'jquery-sdk';
+          jquery.src = '//code.jquery.com/jquery-3.6.0.min.js';
           jquery.onload = res;
           document.body.appendChild(jquery);
         }
       });
       const iamport = new Promise((res, rej) => {
-        const library = document.querySelector("#iamport-sdk");
+        const library = document.querySelector('#iamport-sdk');
         if (library) {
           res();
         } else {
-          const iamport = document.createElement("script");
-          iamport.id = "iamport-sdk";
-          iamport.src = "//cdn.iamport.kr/js/iamport.payment-1.1.8.js";
+          const iamport = document.createElement('script');
+          iamport.id = 'iamport-sdk';
+          iamport.src = '//cdn.iamport.kr/js/iamport.payment-1.1.8.js';
           iamport.onload = res;
           document.body.appendChild(iamport);
         }
@@ -68,7 +68,7 @@ function IamportLibrary() {
     };
     const unloadSdk = () => {
       const jqueryPromise = new Promise((res, rej) => {
-        const library = document.querySelector("#jquery-sdk");
+        const library = document.querySelector('#jquery-sdk');
         if (library) {
           library.parentNode.removeChild(library);
         } else {
@@ -76,7 +76,7 @@ function IamportLibrary() {
         }
       });
       const iamport = new Promise((res, rej) => {
-        const library = document.querySelector("#iamport-sdk");
+        const library = document.querySelector('#iamport-sdk');
         if (library) {
           library.parentNode.removeChild(library);
         } else {
@@ -106,12 +106,12 @@ function IamportLibrary() {
 const getAccessToken = async () => {
   try {
     const response = await axios({
-      url: "https://api.iamport.kr/users/getToken",
-      method: "post",
-      headers: { "Content-Type": "application/json" },
+      url: 'https://api.iamport.kr/users/getToken',
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
       data: {
-        imp_key: "impKey",
-        imp_secret: "impSecret",
+        imp_key: 'impKey',
+        imp_secret: 'impSecret',
       },
     });
 
@@ -152,60 +152,60 @@ const iamportWebhook = async (req, res) => {
 
 ```javascript
 const startIamportPayment = useCallback(async () => {
-  console.log("1. 우선 DB에 결제 정보를 저장합니다.");
+  console.log('1. 우선 DB에 결제 정보를 저장합니다.');
   try {
-    const merchant_uid = await axios.post("payment", {
-      user_id: "사용자 고유 아이디",
-      name: "상품 이름",
+    const merchant_uid = await axios.post('payment', {
+      user_id: '사용자 고유 아이디',
+      name: '상품 이름',
       amount: 10000,
     });
-    console.log("생성 결과에는 merchant_uid 가 담겨있습니다.");
+    console.log('생성 결과에는 merchant_uid 가 담겨있습니다.');
     await commonPayment(merchant_uid.data);
     return;
   } catch (error) {
-    console.log("서버에서의 결제 등록 에러", error);
+    console.log('서버에서의 결제 등록 에러', error);
     alert(error?.response?.data);
     return;
   }
 }, []);
 const commonPayment = useCallback((merchant_uid) => {
   const param = {
-    pg: "html5_inicis",
-    pay_method: "card",
+    pg: 'html5_inicis',
+    pay_method: 'card',
     merchant_uid,
-    name: "상품 이름",
+    name: '상품 이름',
     amount: 10000,
-    buyer_email: "이메일",
-    buyer_name: "이름",
-    buyer_tel: "01012345678",
+    buyer_email: '이메일',
+    buyer_name: '이름',
+    buyer_tel: '01012345678',
     digital: false,
-    m_redirect_url: "모바일용 리다이렉트 url",
+    m_redirect_url: '모바일용 리다이렉트 url',
   };
 
-  console.log("2. 아임포트에서 결제를 진행합니다.");
+  console.log('2. 아임포트에서 결제를 진행합니다.');
 
   window.IMP.request_pay(param, async (response) => {
     if (response.success) {
       const { imp_uid, merchant_uid } = response;
       try {
-        console.log("결제 결과를 DB와 비교해 위변조를 검증합니다.");
-        const response = await axios.post("/payment-complete", {
+        console.log('결제 결과를 DB와 비교해 위변조를 검증합니다.');
+        const response = await axios.post('/payment-complete', {
           imp_uid,
           merchant_uid,
-          user_id: "가상계좌일 경우 사용자아이디",
+          user_id: '가상계좌일 경우 사용자아이디',
         });
-        if (response.data.status === "paid") {
-          alert("결제를 성공했습니다.");
+        if (response.data.status === 'paid') {
+          alert('결제를 성공했습니다.');
         }
-        if (response.data.status === "vbank") {
+        if (response.data.status === 'vbank') {
           alert(response.data.text);
         }
       } catch (error) {
-        console.log("서버에서의 결제 검증 에러 또는 실패", error);
+        console.log('서버에서의 결제 검증 에러 또는 실패', error);
         alert(error?.response?.data);
       }
     } else {
-      console.log("아임포트에서의 결제 실패: ", response.error_msg);
+      console.log('아임포트에서의 결제 실패: ', response.error_msg);
       alert(response);
     }
   });
@@ -218,7 +218,7 @@ const commonPayment = useCallback((merchant_uid) => {
 
 ```javascript
 const createPayment = async (req, res) => {
-  console.log("결제를 시작하기 전 DB에 저장합니다.");
+  console.log('결제를 시작하기 전 DB에 저장합니다.');
   const { name, amount, user_id } = req.body;
   try {
     const merchant_uid = `merchant_${new Date.getTime()}`;
@@ -231,10 +231,10 @@ const createPayment = async (req, res) => {
     });
     res.send(merchant_uid);
   } catch (error) {
-    res.status(500).send("저장 에러");
+    res.status(500).send('저장 에러');
   }
 };
-app.post("/payment", createPayment);
+app.post('/payment', createPayment);
 ```
 
 다음으로 아임포트서 결제를 완료한 후 데이터베이스와 검증하는 함수입니다.
@@ -254,10 +254,10 @@ const verifyCommonPayment = async (req, res) => {
     const { amount, status } = paymentData;
 
     if (amount === order.amount) {
-      console.log("결과가 일치합니다.");
-      if (status === "ready") {
+      console.log('결과가 일치합니다.');
+      if (status === 'ready') {
         console.log(
-          "가상계좌 발급입니다. 해당 정보를 클라이언트로 전달합니다."
+          '가상계좌 발급입니다. 해당 정보를 클라이언트로 전달합니다.'
         );
         const { vbank_num, vbank_date, vbank_name } = paymentData;
         await User.updateOne(
@@ -265,19 +265,19 @@ const verifyCommonPayment = async (req, res) => {
           { $set: { vbank_num, vbank_date, vbank_name } }
         );
         res.send({
-          status: "vbank",
+          status: 'vbank',
           text: `가상계좌 발급. ${vbank_name}은행 ${vbank_num}, 기한: ${vbank_date}`,
         });
-      } else if (status === "paid") {
-        res.send({ status: "paid", text: "일반 결제 성공" });
+      } else if (status === 'paid') {
+        res.send({ status: 'paid', text: '일반 결제 성공' });
       }
     }
   } catch (error) {
-    console.log("에러 발생", error);
+    console.log('에러 발생', error);
     res.status(500).json(error);
   }
 };
-app.post("/payment-complete", verifyCommonPayment);
+app.post('/payment-complete', verifyCommonPayment);
 ```
 
 마지막으로 웹훅에서 데이터를 동기화합니다.
@@ -296,10 +296,10 @@ const iamportWebhook = async (req, res) => {
   const order = await Order.findOne({ merchant_uid });
 
   if (amount === order.amount) {
-    console.log("결제 정보를 갱신합니다.");
+    console.log('결제 정보를 갱신합니다.');
     await Order.updateOne({ merchant_uid }, { $set: paymentData });
   } else {
-    res.status(400).send("결제 금액 불일치");
+    res.status(400).send('결제 금액 불일치');
   }
 };
 ```
@@ -315,29 +315,29 @@ REST API, 일반결제창으로 구분하는데 저는 일반결제창을 이용
 ```javascript
 const startIamportPayment = useCallback(async () => {
   try {
-    console.log("1. 우선 DB에 결제 정보를 저장합니다.");
-    const merchant_uid = await axios.post("payment", {
-      user_id: "사용자 고유 아이디",
-      name: "상품 이름",
+    console.log('1. 우선 DB에 결제 정보를 저장합니다.');
+    const merchant_uid = await axios.post('payment', {
+      user_id: '사용자 고유 아이디',
+      name: '상품 이름',
       amount: 10000,
     });
-    console.log("생성 결과에는 merchant_uid 가 담겨있습니다.");
+    console.log('생성 결과에는 merchant_uid 가 담겨있습니다.');
     await seasonPayment(merchant_uid.data);
     return;
   } catch (error) {
-    console.log("서버에서의 결제 등록 에러", error);
+    console.log('서버에서의 결제 등록 에러', error);
     alert(error?.response?.data);
     return;
   }
 }, []);
 const seasonPayment = useCallback(async () => {
-  const user_id = "사용자아이디로 빌링키와 1:1대응합니다";
+  const user_id = '사용자아이디로 빌링키와 1:1대응합니다';
   const parameter = {
-    pg: "html5_inicis",
-    pay_method: "card",
+    pg: 'html5_inicis',
+    pay_method: 'card',
     merchant_uid: `billing_key_${merchantUid}`,
     customer_uid: user_id,
-    name: "최초인증결제",
+    name: '최초인증결제',
     amount: 0, // 빌링키 발급을 위해 0으로 진행합니다.
     buyer_email: user?.user_id,
     buyer_name: user?.name,
@@ -345,22 +345,22 @@ const seasonPayment = useCallback(async () => {
     m_redirect_url: `${baseUrl}/payment/complete/${ticketInfo?._id}`,
   };
   window.IMP.request_pay(parameter, async (response) => {
-    console.log("최초인증결제 결과: ", response);
+    console.log('최초인증결제 결과: ', response);
     if (response.success) {
       const { imp_uid, merchant_uid } = response;
-      console.log("빌링키 발급 후 결제를 진행합니다.");
+      console.log('빌링키 발급 후 결제를 진행합니다.');
       try {
-        const response = await axios.post("/season-payment", {
+        const response = await axios.post('/season-payment', {
           imp_uid,
           merchant_uid,
           user_id,
         });
       } catch (error) {
-        console.log("서버에서의 결제 실패", error);
+        console.log('서버에서의 결제 실패', error);
         alert(error?.response?.data);
       }
     } else {
-      console.log("결제 실패: ", response.error_msg);
+      console.log('결제 실패: ', response.error_msg);
       alert(response.error_msg);
       return;
     }
@@ -374,7 +374,7 @@ const seasonPayment = useCallback(async () => {
 
 ```javascript
 const createPayment = async (req, res) => {
-  console.log("결제를 시작하기 전 DB에 저장합니다.");
+  console.log('결제를 시작하기 전 DB에 저장합니다.');
   const { name, amount, user_id } = req.body;
   try {
     const merchant_uid = `merchant_${new Date.getTime()}`;
@@ -387,10 +387,10 @@ const createPayment = async (req, res) => {
     });
     res.send(merchant_uid);
   } catch (error) {
-    res.status(500).send("저장 에러");
+    res.status(500).send('저장 에러');
   }
 };
-app.post("/payment", createPayment);
+app.post('/payment', createPayment);
 ```
 
 다음으로 일반결제와 다르게 백엔드에서 아임포트에 결제를 요청합니다. 또한 결제와 동시에 다음 결제를 예약합니다.
@@ -402,50 +402,50 @@ const orderAndSchedule = async (req, res) => {
     const accessToken = await getImportAccessToken();
     const order = await Order.findOne({ merchant_uid });
     if (!paymentFromDB) {
-      console.log("데이터베이스에 결제 정보가 없습니다.");
-      res.status(400).send("데이터베이스에 결제 정보가 없습니다.");
+      console.log('데이터베이스에 결제 정보가 없습니다.');
+      res.status(400).send('데이터베이스에 결제 정보가 없습니다.');
     } else {
-      console.log("정기권 결제를 시작합니다.");
+      console.log('정기권 결제를 시작합니다.');
       const newOrder = await axios.post(
-        "https://api.iamport.kr/subscribe/payments/again",
+        'https://api.iamport.kr/subscribe/payments/again',
         {
-          customer_uid: "빌링키 등록에 사용한 uid",
+          customer_uid: '빌링키 등록에 사용한 uid',
           merchant_uid,
           amount: order?.amount,
           name: order?.title,
-          buyer_email: "사용자로부터 정보를 가져와서 기입",
-          buyer_name: "사용자로부터 정보를 가져와서 기입",
-          buyer_tel: "사용자로부터 정보를 가져와서 기입",
+          buyer_email: '사용자로부터 정보를 가져와서 기입',
+          buyer_name: '사용자로부터 정보를 가져와서 기입',
+          buyer_tel: '사용자로부터 정보를 가져와서 기입',
         },
         { headers: { Authorization: accessToken } }
       );
       const { code, message } = paymentResult.data;
 
       if (code === 0) {
-        console.log("결제 성공. 다음 결제를 예약합니다.");
+        console.log('결제 성공. 다음 결제를 예약합니다.');
         const nextMerchantUid = `schedule_${new Date().getTime()}`;
-        const schedule_at = "Unix Time Stamp 를 기입하셔야 합니다.";
+        const schedule_at = 'Unix Time Stamp 를 기입하셔야 합니다.';
         await axios.post(
-          "https://api.iamport.kr/subscribe/payments/schedule",
+          'https://api.iamport.kr/subscribe/payments/schedule',
           {
-            customer_uid: "빌링키 등록에 사용한 uid",
+            customer_uid: '빌링키 등록에 사용한 uid',
             schedules: [
               {
                 merchant_uid: nextMerchantUid,
                 schedule_at,
                 amount: order?.amount,
                 name: order?.title,
-                buyer_email: "사용자로부터 정보를 가져와서 기입",
-                buyer_name: "사용자로부터 정보를 가져와서 기입",
-                buyer_tel: "사용자로부터 정보를 가져와서 기입",
+                buyer_email: '사용자로부터 정보를 가져와서 기입',
+                buyer_name: '사용자로부터 정보를 가져와서 기입',
+                buyer_tel: '사용자로부터 정보를 가져와서 기입',
               },
             ],
           },
           { headers: { Authorization: accessToken } }
         );
-        console.log("또한 새로운 merchant_uid 를 현재 결제에 저장합니다.");
+        console.log('또한 새로운 merchant_uid 를 현재 결제에 저장합니다.');
         console.log(
-          "다음 결제를 newMerchantUid 로 진행할 때 가격이나 이름 등을 가져오기 위해서입니다."
+          '다음 결제를 newMerchantUid 로 진행할 때 가격이나 이름 등을 가져오기 위해서입니다.'
         );
         await Order.updateOne(
           { merchant_uid },
@@ -453,18 +453,18 @@ const orderAndSchedule = async (req, res) => {
         );
       } else {
         console.log(
-          "고객 카드 한도초과, 거래정지카드, 잔액부족 등으로 실패했습니다."
+          '고객 카드 한도초과, 거래정지카드, 잔액부족 등으로 실패했습니다.'
         );
         res
           .status(409)
           .send(
-            "고객 카드 한도초과, 거래정지카드, 잔액부족 등으로 실패했습니다."
+            '고객 카드 한도초과, 거래정지카드, 잔액부족 등으로 실패했습니다.'
           );
       }
     }
   } catch (error) {
-    console.log("정기 결제에 에러가 발생했습니다.", error);
-    res.status(500).send("정기 결제에 에러가 발생했습니다.");
+    console.log('정기 결제에 에러가 발생했습니다.', error);
+    res.status(500).send('정기 결제에 에러가 발생했습니다.');
   }
 };
 ```
@@ -551,30 +551,30 @@ const cancelSchedule = async () => {
   try {
     const accessToken = await getImportAccessToken();
     const response = await axios.post(
-      "https://api.iamport.kr/subscribe/payments/unschedule",
+      'https://api.iamport.kr/subscribe/payments/unschedule',
       { customer_uid, merchant_uid: [next_merchant_uid] },
       { headers: { Authorization: accessToken } }
     );
     const { code, message } = response.data;
     if (code === 0) {
       console.log(
-        "해지 성공. 이전 예약에 해지한 예약에 대한 정보를 수정합니다."
+        '해지 성공. 이전 예약에 해지한 예약에 대한 정보를 수정합니다.'
       );
       await Order.updateOne(
         { merchant_uid },
-        { $set: { next_merchant_uid: "" } }
+        { $set: { next_merchant_uid: '' } }
       );
-      res.send("해지 성공");
+      res.send('해지 성공');
     } else {
-      console.log("해지 실패", message);
+      console.log('해지 실패', message);
       res.status(409).send(message);
     }
   } catch (error) {
-    console.log("예약 해지에 에러가 발생했습니다.", error);
-    res.send("예약 해지에 에러가 발생했습니다.");
+    console.log('예약 해지에 에러가 발생했습니다.', error);
+    res.send('예약 해지에 에러가 발생했습니다.');
   }
 };
-app.post("/cancel-schedule", cancelSchedule);
+app.post('/cancel-schedule', cancelSchedule);
 ```
 
 ## 5. 모바일 콜백
@@ -589,9 +589,9 @@ app.post("/cancel-schedule", cancelSchedule);
 여기에 저는 정기권인지 아닌지 여부를 params 에 담아 구분하도록 했습니다.
 
 ```javascript
-import React, { useEffect, useCallback } from "react";
-import axios from "axios";
-import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
+import React, { useEffect, useCallback } from 'react';
+import axios from 'axios';
+import { useHistory, useLocation, useRouteMatch } from 'react-router-dom';
 
 function IamportCallback() {
   const match = useRouteMatch();
@@ -599,40 +599,40 @@ function IamportCallback() {
   const history = useHistory();
 
   useEffect(() => {
-    const query = location.search.replace("?", "").split("&");
+    const query = location.search.replace('?', '').split('&');
     const isSeason = match.params.season;
-    const imp_uid = query[0].split("=")[1];
-    const merchant_uid = query[1].split("=")[1];
+    const imp_uid = query[0].split('=')[1];
+    const merchant_uid = query[1].split('=')[1];
 
     if (query.length === 3) {
-      console.log("성공한 경우");
-      if (isSeason === "true") {
-        console.log("정기권");
+      console.log('성공한 경우');
+      if (isSeason === 'true') {
+        console.log('정기권');
         axios
-          .post("/season-complete", { merchant_uid })
+          .post('/season-complete', { merchant_uid })
           .then(() => {
-            alert("결제 성공");
-            history.push("이전 페이지로 이동합니다.");
+            alert('결제 성공');
+            history.push('이전 페이지로 이동합니다.');
           })
           .catch((error) => {
-            alert("걸제 실패");
-            history.push("이전 페이지로 이동합니다.");
+            alert('걸제 실패');
+            history.push('이전 페이지로 이동합니다.');
           });
       } else {
         axios
-          .post("/payment/common-complete", { imp_uid, merchant_uid })
+          .post('/payment/common-complete', { imp_uid, merchant_uid })
           .then(() => {
-            alert("결제 성공");
-            history.push("이전 페이지로 이동합니다.");
+            alert('결제 성공');
+            history.push('이전 페이지로 이동합니다.');
           })
           .catch((error) => {
-            alert("걸제 실패");
-            history.push("이전 페이지로 이동합니다.");
+            alert('걸제 실패');
+            history.push('이전 페이지로 이동합니다.');
           });
       }
     } else {
-      const message = query[4].split("=")[1];
-      console.log("실패", message);
+      const message = query[4].split('=')[1];
+      console.log('실패', message);
       alert(message);
     }
   }, []);
@@ -648,13 +648,13 @@ export default IamportCallback;
 정기결제를 위한 Unix Time Stamp 값을 계산할 때 [moment-timezone](https://www.npmjs.com/package/moment-timezone)으로 날짜를 구해서 계산했습니다. 그 이유는 AWS Beanstalk 에 배포했을 때 Date 객체가 한국 시간(UTC+09:00) 대신 UTC+0:00으로 시간을 계산하는 문제가 있었고, 또한 시간을 문자열로 가공하거나 계산하기가 간편해서입니다.
 
 ```javascript
-import moment from "moment-timezone";
+import moment from 'moment-timezone';
 
 const getMilliSecondFromToday = () => {
-  console.log("정기 결제의 밀리초를 구하기위해 사용한 방법입니다.");
+  console.log('정기 결제의 밀리초를 구하기위해 사용한 방법입니다.');
   const duration = 30; //30일로 가정합니다.
-  const today = moment().tz("Asia/Seoul");
-  const target = today.add(duration, "day");
+  const today = moment().tz('Asia/Seoul');
+  const target = today.add(duration, 'day');
 
   return target.unix();
 };
