@@ -6,7 +6,7 @@ main:
   #   url: https://chinsanchung.github.io/about/
   - title: 'All Posts'
     url: /categories/
-  - title: 'Study'
-    url: /study/
-  - title: 'Project'
-    url: /project/
+  - title: 'Review'
+    url: /review/
+  - title: 'Experience'
+    url: /experience/
