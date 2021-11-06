@@ -15,6 +15,7 @@ description: 프리온보딩 백엔드 코스의 첫 과제를 수행하면서 �
 tags:
   - 위코드
   - 원티드
+  - aimmo
 ---
 
 원티드와 위코드에서 지원하는 [원티드 프리온보딩 백엔드 코스](https://www.wanted.co.kr/events/pre_onboarding_course_4)의 첫 과제를 수행한 경험을 정리하고자 이 글을 작성했습니다.
