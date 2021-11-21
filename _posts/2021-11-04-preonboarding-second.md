@@ -11,7 +11,7 @@ categories:
 toc: true
 toc_sticky: true
 toc_labe: 목차
-description: 프리온보딩 백엔드 코스의 e두 번째 과제를 수행하면서 겪은 경험을 작성합니다.
+description: 프리온보딩 백엔드 코스의 두 번째 과제를 수행하면서 겪은 경험을 작성합니다.
 tags:
   - 위코드
   - 원티드
@@ -44,4 +44,4 @@ freshcode 는 "샐러드는 배고픈 다이어트 음식"이라는 편견을 �
 
 ## 2. 회고
 
-## 3. 프로젝트를 마치며
+작성 중입니다.
