@@ -15,7 +15,7 @@ description: 프리온보딩 백엔드 코스의 네 번째 과제를 수행하�
 tags:
   - 위코드
   - 원티드
-  - freshcode
+  - 8퍼센트
 ---
 
 원티드와 위코드에서 지원하는 [원티드 프리온보딩 백엔드 코스](https://www.wanted.co.kr/events/pre_onboarding_course_4)의 네 번째 과제를 수행한 경험을 정리하고자 이 글을 작성했습니다. [Github repository 링크](https://github.com/wanted-wecode-subjects/eight-percent-subject)에서 작성한 코드를 확인하실 수 있습니다.
