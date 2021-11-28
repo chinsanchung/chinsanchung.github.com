@@ -98,4 +98,65 @@ tags:
 
 ## 회고
 
-작성 중입니다.
+### 서비스의 리턴 타입을 통일하기
+
+모든 서비스는 아래의 인터페이스 중에서 하나의 타입대로 값을 리턴합니다. 성공과 실패를 같은 타입으로 리턴한 이유는 우선 서비스의 예측 결과가 무엇일지를 쉽게 파악할 수 있는 점, 그리고 모든 실패에 대한 결과를 통제하는 데 있어서 throw Error보다 수월한 점이 있습니다.
+
+```typescript
+export interface IOutput {
+  ok: boolean;
+  httpStatus?: number;
+  error?: string;
+}
+
+export interface IOutputWithData<DataType> extends IOutput {
+  data?: DataType;
+}
+```
+
+성공했을 때는 ok: true 를 리턴합니다. 만약 데이터가 존재한다면 data: DataType으로 데이터를 리턴합니다. 제네릭을 이용해 타입을 설정할 수 있습니다.
+원하는 결과가 없을 때, 로그인 등 특정 로직을 실패했을 때, 에러가 발생했을 때는 ok: false, httpStatus: http 상태 코드, error: "에러 메시지"를 리턴합니다. 참고로 NestJs 에서는 `throw new InternalServerErrorException` 와 같이 곧바로 HTTP 에러 상태 코드를 응답으로 보내는 기능이 있습니다. 이것을 서비스에서 사용하지 않은 이유는 요청과 응답은 컨트롤러에서 관리하는 것이 옳다고 생각하기 때문입니다.
+
+### 타이어를 저장 할 때 캐시를 활용해 반복을 줄이기
+
+타이어를 저장할 떄, 유저와 타이어를 객체로 따로 저장했습니다. 그 이유는 동일한 유저 또는 trimId 로 인해 로직을 반복하는 과정을 줄이고 싶어서입니다. 이러한 아이디어를 얻은 계기는 [프로그래머스의 nodeJS 백엔드 과정]()에서 들은 강의였는데, 데이터베이스에서 읽는 과정도 비용이 발생하기에 그것을 최소화하기 위해서 한 번 불러온 값을 캐시로 저장하고 필요할 때 그것을 호출해 데이터베이스에 다시 접근할 필요를 차단하는 것이었습니다. 그래서 저도 올바른 유저인지 확인하기, 카닥 API 에서 타이어 정보를 추출하는 과정의 결과를 객체에 저장해 재사용하는 방법을 선택했습니다.
+
+```typescript
+const userEntities = {};
+const tireEntites = {};
+const entireTireInfo = {};
+
+// * 유효한 유저 아이디인지 확인합니다. 한 번 확인한 아이디는 다시 확인하지 않습니다.
+if (!userEntities[id]) {
+  const checkUserEntity = await this.checkAndReturnUserEntity(id);
+  if (!checkUserEntity.ok) {
+    httpStatus = checkUserEntity.httpStatus;
+    error = checkUserEntity.error;
+    throw new Error();
+  }
+  Object.assign(userEntities, { [`${id}`]: checkUserEntity.data });
+}
+
+// * 카닥 API 에서 차에 대한 정보를 불러옵니다. trimId 결과를 entireTireInfo에 저장하여 같은 trimId 로 API 를 호출하는 것을 방지합니다.
+if (!entireTireInfo[trimId]) {
+  const carInfo = await this.getTireInfoFromCarApi(trimId);
+  // * 유효한 trimid 로 불러온 것인지 확인합니다.
+  if (!carInfo.ok) {
+    httpStatus = carInfo.httpStatus;
+    error = carInfo.error;
+    throw new Error();
+  }
+  Object.assign(entireTireInfo, { [`${trimId}`]: carInfo.data });
+}
+
+// * 타이어에 저장한 것인지 확인하고, 저장하지 않으면 타이어 생성을, 저장했으면 타이어 데이터를 불러옵니다.
+const checkTireEntity = await this.checkOrCreateAndReturnTireEntity(
+  entireTireInfo[`${trimId}`]
+);
+if (!checkTireEntity.ok) {
+  httpStatus = checkTireEntity.httpStatus;
+  error = checkTireEntity.error;
+  throw new Error();
+}
+Object.assign(tireEntites, { [`${id}`]: checkTireEntity.data });
+```
