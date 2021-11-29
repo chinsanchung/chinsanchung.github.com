@@ -4,9 +4,9 @@ main:
   # url: https://mmistakes.github.io/minimal-mistakes/docs/quick-start-guide/
   # - title: "About"
   #   url: https://chinsanchung.github.io/about/
-  - title: 'All Posts'
+  - title: "All Posts"
     url: /categories/
-  # - title: 'Review'
-  #   url: /review/
-  # - title: 'Experience'
-  #   url: /experience/
+  - title: "Review"
+    url: /reviews/
+  - title: "Experience"
+    url: /experiences/
