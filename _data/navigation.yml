@@ -7,6 +7,6 @@ main:
   - title: "All Posts"
     url: /categories/
   - title: "Review"
-    url: /reviews/
+    url: /review/
   - title: "Experience"
-    url: /experiences/
+    url: /experience/
