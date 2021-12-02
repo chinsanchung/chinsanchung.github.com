@@ -1,5 +1,5 @@
 ---
-title: '트위터의 일부 기능을 클론 코딩한 twitter_clone 제작기'
+title: '트위터의 일부 기능을 구현한 witter 제작기'
 layout: single
 author_profile: false
 read_time: false
@@ -11,12 +11,12 @@ categories:
 toc: true
 toc_sticky: true
 toc_labe: 목차
-description: 트위터의 일부 기능을 클론 코딩한 twitter_clone 프로젝트를 제작하고 heroku 에 배포했던 경험을 적었습니다.
+description: 트위터의 일부 기능을 구현한 witter 애플리케이션을 제작하고 heroku 에 배포했던 경험을 적었습니다.
 tags:
   - toy_project
 ---
 
-트위터의 기능을 직접 구현해보는 [twitter_clone](https://witterclone.herokuapp.com) 프로젝트를 제작하면서 어떤 방식으로 개발을 했는지, 문제를 해결했던 경험을 정리합니다.
+트위터의 일부 기능을 직접 구현해보는 [witter](https://witterclone.herokuapp.com) 프로젝트를 제작하면서 어떤 방식으로 개발을 했는지, 문제를 해결했던 경험을 정리합니다. [클라이언트 레포지토리](https://github.com/chinsanchung/witter-client), [백엔드 레포지토리](https://github.com/chinsanchung/witter-server)에서 코드를 확인하실 수 있습니다.
 
 ## 1. 프로젝트를 시작한 이유
 
