@@ -18,17 +18,17 @@ tags:
   - 레드브릭
 ---
 
-원티드와 위코드에서 지원하는 [원티드 프리온보딩 백엔드 코스](https://www.wanted.co.kr/events/pre_onboarding_course_4)의 세 번째 과제를 수행한 경험을 정리하고자 이 글을 작성했습니다. [Github repository 링크](https://github.com/wanted-wecode-subjects/redbrick-subject)에서 작성한 코드를 확인하실 수 있습니다.
+원티드와 위코드에서 지원하는 [원티드 프리온보딩 백엔드 코스](https://www.wanted.co.kr/events/pre_onboarding_course_4)의 세 번째 과제를 수행한 경험을 정리합니다. [GitHub Repository](https://github.com/chinsanchung/preonboarding-redbrick)에서 코드를 확인하실 수 있습니다.
 
 ## 1. 개요
 
-이번 프로젝트는 [레드브릭](https://wizschool.notion.site/wizschool/Redbrick-the-new-land-of-opportunity-f449bf0490f6468a8cb04ae3c96ed98b)에서 제시한 과제입니다.
+이번 프로젝트는 [레드브릭](https://wizschool.notion.site/wizschool/Redbrick-the-new-land-of-opportunity-f449bf0490f6468a8cb04ae3c96ed98b)에서 제시한 과제로, **레드브릭**은 누구나 쉽게 자신만의 소프트웨어를 창작할 수 있도록, 소프트웨어 창작 대중화를 꿈꾸는 기업입니다.
 
-**레드브릭**은 누구나 쉽게 자신만의 소프트웨어를 창작할 수 있도록, 소프트웨어 창작 대중화를 꿈꿉니다.
+### 과제 안내
 
 주제는 게시글 API 를 만드는 것으로, 세부적인 사항은 아래와 같습니다.
 
-### [필수 요구 사항]
+1. 필수 요구 사항
 
 - 회원가입
 - 게임 제작
@@ -40,30 +40,14 @@ tags:
   - 출시하는 게임은 다른 사용자들도 볼 수 있으며, 사용자들의 **조회수 / 좋아요 등을 기록**할 수 있어야 합니다
   - '게임 혹은 사용자 **검색**'을 통해서 찾을 수 있어야 합니다
 
-### [개발 요구사항]
+2. 개발 요구사항
 
-```jsx
-- 참고 - 문제 1,2번은 필수 문제이며, 3번은 선택입니다
-문제 1. '회원가입'부터 '게임 출시'까지 필요한 테이블을 설계하세요
-
-문제 2. 다음에 필요한 API를 설계하세요
-
-	1) 게임 제작 API
-	2) 조회수 수정, 좋아요 API
-	3) 게임/사용자 검색 API
-
-- option -
-문제 3.
- (1) 프로젝트 실시간 반영을 위한 Architecture를 설계하세요 ( 그림이 있다면 좋습니다 )
- (2) 위의 Architecture를 토대로 기능을 구현하세요
-```
-
-### 개발 환경
-
-- 언어: TypeScript
-- 프레임워크: NestJs
-- 데이터베이스: SQLite3
-- 라이브러리: typeorm, passport, passport-jwt, bcrypt, class-validator, class-transformer, cache-manager, @nestjs/schedule
+- '회원가입'부터 '게임 출시'까지 필요한 테이블을 설계하세요
+- 다음에 필요한 API를 설계하세요
+  - 게임 제작 API
+  - 조회수 수정, 좋아요 API
+  - 게임/사용자 검색 API
+- 사용자는 상품 조회만 가능합니다.
 
 ## 회고
 

@@ -18,19 +18,15 @@ tags:
   - 휴먼스케이프
 ---
 
-원티드와 위코드에서 지원하는 [원티드 프리온보딩 백엔드 코스](https://www.wanted.co.kr/events/pre_onboarding_course_4)의 다섯 번째 과제를 수행한 경험을 정리하고자 이 글을 작성했습니다. [Github repository 링크](https://github.com/wanted-wecode-subjects/humanscape-subject)에서 작성한 코드를 확인하실 수 있습니다.
+원티드와 위코드에서 지원하는 [원티드 프리온보딩 백엔드 코스](https://www.wanted.co.kr/events/pre_onboarding_course_4)의 다섯 번째 과제를 수행한 경험을 정리하고자 이 글을 작성했습니다. [Github Repository](https://github.com/chinsanchung/preonboarding-humanscape)에서 작성한 코드를 확인하실 수 있습니다.
 
 ## 개요
 
-이번 프로젝트는 [휴먼스케이프](https://humanscape.io/kr/index.html)에서 제시한 과제입니다.
-
-**휴먼스케이프**는 희귀난치성 질환을 가진 환자들이 직접 업로드한 건강 데이터를 기반으로 자신에게 꼭 맞는 치료제 개발 및 임상시험 정보를 확인하고 참여할 수 있는 [레어노트](https://humanscape.io/kr/service_rarenote.html) 등 헬스케어 서비스를 제공하는 기업입니다.
-
-휴먼스케이프에서 제시한 주제는 임상 정보를 수집하고 그것을 출력하는 API 제작입니다.
+이번 프로젝트는 [휴먼스케이프](https://humanscape.io/kr/index.html)에서 제시한 과제로, **휴먼스케이프**는 희귀난치성 질환을 가진 환자들이 직접 업로드한 건강 데이터를 기반으로 자신에게 꼭 맞는 치료제 개발 및 임상시험 정보를 확인하고 참여할 수 있는 [레어노트](https://humanscape.io/kr/service_rarenote.html) 등 헬스케어 서비스를 제공하는 기업입니다.
 
 ### 과제 안내
 
-다음 사항들을 충족하는 서비스를 구현해주세요.
+주제는 임상 정보를 수집하고 그것을 출력하는 API 제작입니다.
 
 - 전부다 쌓는 API
 - 임상정보를 수집하는 batch task
@@ -44,28 +40,3 @@ tags:
 ## 회고
 
 작성 중입니다.
-
-### 시간문제...
-
-- 시간 계산. date-fns 를 이용함.
-- 하루 단위는 오늘 0시 0분 0초 ~ 다음날 0시 0분 0초.
-- 7일 단위는 6일전 0,0,0 ~ 오늘 0,0,0
-- toISOString 으로 변환하여 쿼리문에 넣음.
-- 저장할 때의 방식도 utc 시간으로 통일하려고 협의 예정.
-- TypeOrmModule.forRoot 에서 timezone 을 설정하려 했지만 mysql, mariadb 에서만 지원함.
-
-- 하루 밀려서 검색이 되고 있음. 7/15 입력 -> 범위는 7/14 15:00 ~ 7/15 15:00 인데 2021-07-15T19:39:44.000Z 가 나오고 있음.
-  - 검색어를 7/14으로 1일을 빼고 계산하니 정상적으로 나옴. 원인이 무엇일지.
-
-### 데이터베이스
-
-- approval_time 으로 인덱스를 생성?
-
-### 테스트
-
-- 서비스 테스트 중에, ClinicalServie 를 can't resolve dependencies of the clinicalService
-- 레포지토리의 선언 방식을 수정함.
-
-## 프로젝트를 마치며
-
-시간 계산.

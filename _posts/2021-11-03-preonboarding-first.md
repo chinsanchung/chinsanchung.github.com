@@ -18,11 +18,15 @@ tags:
   - aimmo
 ---
 
-원티드와 위코드에서 지원하는 [원티드 프리온보딩 백엔드 코스](https://www.wanted.co.kr/events/pre_onboarding_course_4)의 첫 과제를 수행한 경험을 정리하고자 이 글을 작성했습니다.
+원티드와 위코드에서 지원하는 [원티드 프리온보딩 백엔드 코스](https://www.wanted.co.kr/events/pre_onboarding_course_4)의 첫 과제를 수행한 경험을 정리합니다. [GitHub Repository](https://github.com/chinsanchung/preonboarding-aimmo)에서 코드를 확인하실 수 있습니다.
 
-## 1. 개요
+## 개요
 
-이번 첫 번째 프로젝트는 [에이모](https://aimmo.co.kr/)에서 제시한 과제입니다. 주제는 게시글 API 를 만드는 것으로, 세부적인 사항은 아래와 같습니다.
+이번 첫 번째 프로젝트는 [aimmo](https://aimmo.co.kr/)에서 제시한 과제로, **aimmo**는 인공지능의 활용을 원하는 산업·기업에서 정확한 AI 모델을 쉽고 빠르게 만들 수 있도록 데이터 라이프 사이클의 전 과정을 지원하는 기업입니다.
+
+### 과제 안내
+
+주제는 게시글 API 를 만드는 것으로, 세부적인 사항은 아래와 같습니다.
 
 - 게시글 카테고리
 - 게시글 검색
@@ -34,11 +38,7 @@ tags:
 - Unit Test
 - 1000만건 이상의 데이터를 넣고 성능테스트 진행 결과 필요
 
-에이모에서 선호하는 기술 스택을 python flask 로 적었지만, 그 부분은 선택사항이기에 Express 를 사용해서 작성했습니다. 다만, 데이터베이스는 mongodb 를 필수로 지정해야 했습니다.
-
-프로젝트의 [리포지토리](https://github.com/lhj0621/nodeswork_boards_server)에서 사용했던 기술, 맡은 업무, API 명세 등 더 자세한 정보를 확인하실 수 있습니다.
-
-## 2. 회고
+## 회고
 
 ### 데이터 스키마 설계 및 기본 설정
 
