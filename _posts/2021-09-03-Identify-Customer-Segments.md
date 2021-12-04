@@ -1,5 +1,5 @@
 ---
-title: 'Introduction to Machine Learning with TensorFlow - Identify Customer Segments'
+title: "Introduction to Machine Learning with TensorFlow - Identify Customer Segments"
 layout: single
 author_profile: false
 read_time: false
@@ -11,7 +11,8 @@ categories:
 toc: true
 toc_sticky: true
 toc_labe: 목차
-description: Introduction to Machine Learning with TensorFlow 의 세 번째 프로젝트 "Identify Customer Segments"를 어떻게 작성했는지 설명합니다.
+description: 실제 독일인의 인구 통계 데이터로부터 우편 발송 캠페인을 위해 제품을 구매할 가능성이 큰 사람들을 식별하는 Identify Customer Segments 프로젝트를 정리합니다.
+excerpt: 실제 독일인의 인구 통계 데이터로부터 우편 발송 캠페인을 위해 제품을 구매할 가능성이 큰 사람들을 식별하는 Identify Customer Segments 프로젝트를 정리합니다.
 tags:
   - Udacity
   - nanodegree

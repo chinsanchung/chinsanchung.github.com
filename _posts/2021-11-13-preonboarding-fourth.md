@@ -1,5 +1,5 @@
 ---
-title: '원티드 프리온보딩 코스 네 번째 과제 후기'
+title: "원티드 프리온보딩 코스 네 번째 과제 후기"
 layout: single
 author_profile: false
 read_time: false
@@ -11,7 +11,8 @@ categories:
 toc: true
 toc_sticky: true
 toc_labe: 목차
-description: 프리온보딩 백엔드 코스의 네 번째 과제를 수행하면서 겪은 경험을 작성합니다.
+description: 8퍼센트에서 제시해주신 계좌 거래 API 과제의 제작 과정을 정리합니다.
+excerpt: 8퍼센트에서 제시해주신 계좌 거래 API 과제의 제작 과정을 정리합니다.
 tags:
   - 위코드
   - 원티드
@@ -76,7 +77,7 @@ export class Transaction {
   @Column()
   amount: number;
 
-  @Column({ default: '' })
+  @Column({ default: "" })
   comments: string;
 
   @Column({ default: 0 })
@@ -87,7 +88,7 @@ export class Transaction {
 
   @ManyToOne((_type) => Account, (account) => account.transactions, {
     eager: true,
-    onDelete: 'CASCADE',
+    onDelete: "CASCADE",
   })
   account: Account;
 }
@@ -106,7 +107,7 @@ export class Account extends CoreEntity {
 
   @ManyToOne((_type) => User, (user) => user.accounts, {
     eager: false,
-    onDelete: 'CASCADE',
+    onDelete: "CASCADE",
   })
   user: User;
 
@@ -127,16 +128,16 @@ export class Account extends CoreEntity {
 const account = await this.accountRepository.findOne({
   where: { acc_num: query.acc_num },
   join: {
-    alias: 'account',
-    leftJoinAndSelect: { user: 'account.user' },
+    alias: "account",
+    leftJoinAndSelect: { user: "account.user" },
   },
 });
 if (!account) {
-  throw new BadRequestException('거래 내역에 등록한 계좌가 존재하지 않습니다.');
+  throw new BadRequestException("거래 내역에 등록한 계좌가 존재하지 않습니다.");
 }
 if (account.user.user_id !== query.user.user_id) {
   throw new NotAcceptableException(
-    '오직 계좌의 소유주만 해당 계좌의 거래 내역을 조회하실 수 있습니다.'
+    "오직 계좌의 소유주만 해당 계좌의 거래 내역을 조회하실 수 있습니다."
   );
 }
 ```
@@ -205,7 +206,7 @@ if (account.user.user_id !== query.user.user_id) {
 where 조건절으로 계좌 번호가 일치하는 거래 내역만을 불러옵니다.
 
 ```typescript
-where('account.acc_num = :acc_num', { acc_num });
+where("account.acc_num = :acc_num", { acc_num });
 ```
 
 - 거래일시
@@ -253,13 +254,13 @@ private getDatePeriod(
 
 ```typescript
 let transTypeQuery: any = [
-  'transaction.trans_type = :trans_type',
+  "transaction.trans_type = :trans_type",
   { trans_type },
 ];
 if (!trans_type) {
   transTypeQuery = [
-    'transaction.trans_type IN (:...trans_type)',
-    { trans_type: ['in', 'out'] },
+    "transaction.trans_type IN (:...trans_type)",
+    { trans_type: ["in", "out"] },
   ];
 }
 ```

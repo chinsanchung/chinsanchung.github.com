@@ -1,5 +1,5 @@
 ---
-title: '로그인 기능 구현하기'
+title: "로그인 기능 구현하기"
 layout: single
 author_profile: false
 read_time: false
@@ -12,6 +12,7 @@ toc: true
 toc_sticky: true
 toc_labe: 목차
 description: 현재 사용하고 있는 로그인 방식에 대해 정리했습니다.
+excerpt: 현재 사용하고 있는 로그인 방식에 대해 정리했습니다.
 tags:
   - express
   - javascript
@@ -35,8 +36,8 @@ React, Express, passport-local, passport-jwt, bcrypt, jsonwebtoken, MongoDB
 
 ```javascript
 function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [store, dispatch] = authContext();
 
   // 이메일, 비밀번호 입력
@@ -57,20 +58,20 @@ function Login() {
 
   const onStartLogin = useCallback(async () => {
     try {
-      if (checkEmailValidation && password !== '') {
-        const response = await axios.post('/login', { email, password });
+      if (checkEmailValidation && password !== "") {
+        const response = await axios.post("/login", { email, password });
         const { _id, name } = response.data;
-        dispatch({ type: 'LOGIN', payload: { _id, name } });
-      } else alert('양식에 맞춰 작성해주세요.');
+        dispatch({ type: "LOGIN", payload: { _id, name } });
+      } else alert("양식에 맞춰 작성해주세요.");
     } catch (error) {
-      console.log('로그인 에러:', error?.response?.data);
+      console.log("로그인 에러:", error?.response?.data);
       alert(error?.response?.data);
     }
   }, [email, password, checkEmailValidation]);
 
   // 로그인 성공 시 메인 페이지로 이동
   useEffect(() => {
-    if (store.isLogin) history.push('/main-page');
+    if (store.isLogin) history.push("/main-page");
   }, [auth]);
 
   return (
@@ -108,13 +109,13 @@ function App() {
 
   const startRefreshLogin = useCallback(async () => {
     try {
-      const response = await axios.post('/refresh-login');
+      const response = await axios.post("/refresh-login");
       const { accessToken, _id, name } = response.data;
 
-      axios.defaults.headers.common['Authorization'] = accessToken;
-      dispatch({ type: 'LOGIN', payload: { _id, name } });
+      axios.defaults.headers.common["Authorization"] = accessToken;
+      dispatch({ type: "LOGIN", payload: { _id, name } });
     } catch (error) {
-      console.log('새로고침 에러', error?.response?.data);
+      console.log("새로고침 에러", error?.response?.data);
       alert(error?.response?.data);
     }
   }, []);
@@ -136,7 +137,7 @@ function App() {
 bcrypt 를 사용해서 암호화 및 복호화를 하고 있습니다. `createHash`로 비밀번호를 해시로 암호화하고, `comparePassword`로 클라이언트에서 입력한 비밀번호와 데이터베이스에 저장한 비밀번호(해시)를 비교합니다.
 
 ```javascript
-import bcrypt from 'bcrypt';
+import bcrypt from "bcrypt";
 
 const saltRounds = 10;
 
@@ -155,22 +156,22 @@ Passport 는 사용자 인증을 구현해주는 라이브러리로,
 [Passport로 회원가입 및 로그인하기](https://www.zerocho.com/category/NodeJS/post/57b7101ecfbef617003bf457), [passport-local](http://www.passportjs.org/docs/downloads/html/), [bcrypt - npm](https://www.npmjs.com/package/bcrypt)을 참고했습니다.
 
 ```javascript
-import passport from 'passport';
-import { Strategy as LocalStrategy } from 'passport-local';
-import { Strategy as JWTStrategy, ExtractJwt } from 'passport-jwt';
-import User from '../model/User';
-import { createHash, comparePassword } from '../util/passwordFunctions';
+import passport from "passport";
+import { Strategy as LocalStrategy } from "passport-local";
+import { Strategy as JWTStrategy, ExtractJwt } from "passport-jwt";
+import User from "../model/User";
+import { createHash, comparePassword } from "../util/passwordFunctions";
 
-const refreshPrivateKey = 'refresh token 의 비밀 키';
+const refreshPrivateKey = "refresh token 의 비밀 키";
 
 const configure = () => {
   // 로그인 시 실행합니다.
   passport.use(
-    'login',
+    "login",
     new LocalStrategy(
       {
-        usernameField: 'email',
-        passwordField: 'password',
+        usernameField: "email",
+        passwordField: "password",
         session: false,
         passReqToCallback: false,
       },
@@ -179,12 +180,12 @@ const configure = () => {
           .then((user) => {
             if (!user) {
               return done(null, false, {
-                message: '해당 이메일로 등록한 계정이 없습니다.',
+                message: "해당 이메일로 등록한 계정이 없습니다.",
               });
             }
             if (!comparePassword(password, user.password)) {
               return done(null, false, {
-                message: '해당 계정의 비밀번호와 일치하지 않습니다.',
+                message: "해당 계정의 비밀번호와 일치하지 않습니다.",
               });
             }
             return done(null, user);
@@ -196,12 +197,12 @@ const configure = () => {
 
   // 새로고침 시 실행합니다.
   passport.use(
-    'refresh-login',
+    "refresh-login",
     new JWTStrategy(
       {
-        secretOrKey: 'refreshPrivateKey',
+        secretOrKey: "refreshPrivateKey",
         jwtFromRequest: (req) => {
-          if (req && req.cookies) return req.cookies['refreshToken'];
+          if (req && req.cookies) return req.cookies["refreshToken"];
           else return null;
         },
       },
@@ -210,12 +211,12 @@ const configure = () => {
           .then((user) => {
             if (!user)
               return done(null, false, {
-                message: '해당하는 계정이 없습니다.',
+                message: "해당하는 계정이 없습니다.",
               });
             if (payload.refreshToken !== user.refresh_token) {
               // 데이터베이스에 저장한 토큰과 비교합니다.
               return done(null, false, {
-                message: '갱신 토큰이 불일치합니다.',
+                message: "갱신 토큰이 불일치합니다.",
               });
             }
             return done(null, user);
@@ -231,15 +232,15 @@ const configure = () => {
 
 ```javascript
 // app.js
-import express from 'express';
-import config from './passport';
+import express from "express";
+import config from "./passport";
 
 const app = express();
 
 // passport 를 실행합니다.
 config();
 
-app.listen(4000, () => console.log('start server'));
+app.listen(4000, () => console.log("start server"));
 ```
 
 ### 3.3 로그인 서버 함수
@@ -253,8 +254,8 @@ app.listen(4000, () => console.log('start server'));
 - res.cookie 에 대한 자세한 설명은 [express - res.cookie](http://expressjs.com/en/api.html#res.cookie)에서 확인하실 수 있습니다.
 
 ```javascript
-const refreshPrivateKey = 'refresh token 의 비밀 키';
-const accessPrivateKey = 'access token 의 비밀 키';
+const refreshPrivateKey = "refresh token 의 비밀 키";
+const accessPrivateKey = "access token 의 비밀 키";
 
 const postLogin = async (req, res) => {
   try {
@@ -263,7 +264,7 @@ const postLogin = async (req, res) => {
     const encryptedToken = jsonwebtoken.sign(
       { subject: req.user._id, refreshToken },
       refreshPrivateKey,
-      { expiresIn: '14d' }
+      { expiresIn: "14d" }
     );
     // 사용자의 데이터베이스 갱신
     await User.updateOne(
@@ -274,19 +275,19 @@ const postLogin = async (req, res) => {
     const accessToken = jsonwebtoken.sign(
       { subject: req.user._id, refreshToken },
       accessPrivateKey,
-      { expiresIn: '1h' }
+      { expiresIn: "1h" }
     );
 
-    res.cookie('accessToken', accessToken, { httpOnly: true });
+    res.cookie("accessToken", accessToken, { httpOnly: true });
     // 만료일을 14일로 잡았습니다.
-    res.cookie('refreshToken', encryptedToken, {
+    res.cookie("refreshToken", encryptedToken, {
       httpOnly: true,
       maxAge: 1209600000,
     });
     res.json({ _id: req.user._id, name: req.user.name });
   } catch (error) {
-    console.log('로그인 에러', error);
-    res.status(500).send('로그인 과정에서 에러가 발생했습니다.');
+    console.log("로그인 에러", error);
+    res.status(500).send("로그인 과정에서 에러가 발생했습니다.");
   }
 };
 ```
@@ -299,15 +300,15 @@ const postRefreshLogin = async (req, res) => {
     const accessToken = jsonwebtoken.sign(
       { subject: req.user._id, refreshToken: req.user.refresh_token },
       accessPrivateKey,
-      { expiresIn: '1h' }
+      { expiresIn: "1h" }
     );
     // 새로운 access token 을 발급합니다.
-    res.cookie('accessToken', accessToken, { httpOnly: true });
+    res.cookie("accessToken", accessToken, { httpOnly: true });
 
     res.json({ _id: req.user._id, name: req.user.name });
   } catch (error) {
-    console.log('새로고침 검증 에러', error);
-    res.status(500).send('새로고침 로그인 과정에서 에러가 발생했습니다.');
+    console.log("새로고침 검증 에러", error);
+    res.status(500).send("새로고침 로그인 과정에서 에러가 발생했습니다.");
   }
 };
 ```
@@ -317,12 +318,12 @@ const postRefreshLogin = async (req, res) => {
 URL 에 작성한 서버 함수를 연결하는데, 그 전에 미들웨어로 Passport 를 실행합니다.
 
 ```javascript
-import passport from 'passport';
-import { postLogin, postRefreshLogin } from '../controller/Auth';
+import passport from "passport";
+import { postLogin, postRefreshLogin } from "../controller/Auth";
 
 router.post(
-  '/login',
-  passport.authenticate('login', { session: false }, (error, user, info) => {
+  "/login",
+  passport.authenticate("login", { session: false }, (error, user, info) => {
     if (error) res.status(500).json(error);
     if (!user) {
       res.status(401).send(info.message);
@@ -335,9 +336,9 @@ router.post(
 );
 
 router.post(
-  '/refresh-login',
+  "/refresh-login",
   passport.authenticate(
-    'refresh-login',
+    "refresh-login",
     { session: false },
     (error, user, info) => {
       if (error) res.status(500).json(error);
@@ -358,7 +359,7 @@ router.post(
 access token 을 검증하는 미들웨어를 작성합니다. 로그인이 필요한 기능을 수행하기 전에 미들웨어로 넣어 검증합니다.
 
 ```javascript
-const accessPrivateKey = 'access token 의 비밀 키';
+const accessPrivateKey = "access token 의 비밀 키";
 
 const getCheckAccessToken = async (req, res) => {
   try {
@@ -366,20 +367,20 @@ const getCheckAccessToken = async (req, res) => {
       headers: { authorization },
     } = req;
     if (!authorization) {
-      res.status(401).send('토큰이 존재하지 않습니다.');
+      res.status(401).send("토큰이 존재하지 않습니다.");
     } else {
       const verifiedData = jsonwebtoken.verify(authorization, accessPrivateKey);
       const { subject, refreshToken } = verifiedData;
-      const user = await User.findById(subject).select('refresh_token').lean();
+      const user = await User.findById(subject).select("refresh_token").lean();
       if (refreshToken !== user?.refresh_token) {
-        res.status(401).send('refresh token 이 만료되었습니다.');
+        res.status(401).send("refresh token 이 만료되었습니다.");
       } else {
         req.user = user;
         next();
       }
     }
   } catch (error) {
-    console.log('access token 이 만료되었습니다.');
+    console.log("access token 이 만료되었습니다.");
   }
 };
 ```

@@ -1,5 +1,5 @@
 ---
-title: '원티드 프리온보딩 코스 두 번째 과제 후기'
+title: "원티드 프리온보딩 코스 두 번째 과제 후기"
 layout: single
 author_profile: false
 read_time: false
@@ -11,7 +11,8 @@ categories:
 toc: true
 toc_sticky: true
 toc_labe: 목차
-description: 프리온보딩 백엔드 코스의 두 번째 과제를 수행하면서 겪은 경험을 작성합니다.
+description: freshcode 에서 제시해주신 상품 관리 API 과제의 제작 과정을 정리합니다.
+excerpt: freshcode 에서 제시해주신 상품 관리 API 과제의 제작 과정을 정리합니다.
 tags:
   - 위코드
   - 원티드
@@ -81,7 +82,7 @@ export class AuthService {
         return {
           ok: false,
           htmlStatus: 403,
-          error: '올바르지 않은 이메일 또는 비밀번호 입니다.',
+          error: "올바르지 않은 이메일 또는 비밀번호 입니다.",
         };
       }
       const loginedAt = new Date();
@@ -95,7 +96,7 @@ export class AuthService {
       return {
         ok: false,
         htmlStatus: 500,
-        error: '로그인 과정에서 에러가 발생했습니다.',
+        error: "로그인 과정에서 에러가 발생했습니다.",
       };
     }
   }
@@ -107,17 +108,17 @@ export class AuthService {
 그 다음 auth/strategies/local.strategy.ts 파일을 만들고, passport-local 에 사용할 로컬 전략을 만듭니다. `super` 안의 usernameField, passwordField 속성으로 로그인에 입력할 필드의 이름을 수정했습니다.
 
 ```typescript
-import { HttpException, Injectable } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import { Strategy } from 'passport-local';
-import { AuthService } from '../auth.service';
+import { HttpException, Injectable } from "@nestjs/common";
+import { PassportStrategy } from "@nestjs/passport";
+import { Strategy } from "passport-local";
+import { AuthService } from "../auth.service";
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
   constructor(private authService: AuthService) {
     super({
-      usernameField: 'email',
-      passwordField: 'password',
+      usernameField: "email",
+      passwordField: "password",
     });
   }
 
@@ -157,11 +158,11 @@ export class AuthModule {}
 local-auth.guard.ts 에서 `LocalAuthGuard` 클래스를 생성합니다. NestJs 공식 문서에서는 `AuthGuard('local')` 자체를 가드로 사용하는 대신, 자신만의 클래스를 만드는 것을 권장합니다.
 
 ```typescript
-import { Injectable } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { Injectable } from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
 
 @Injectable()
-export class LocalAuthGuard extends AuthGuard('local') {}
+export class LocalAuthGuard extends AuthGuard("local") {}
 ```
 
 #### 5. 토큰을 발급하고 응답으로 보내기
@@ -169,7 +170,7 @@ export class LocalAuthGuard extends AuthGuard('local') {}
 로그인이 성공했을 경우 토큰을 발급합니다.
 
 ```typescript
-import { JwtService } from '@nestjs/jwt';
+import { JwtService } from "@nestjs/jwt";
 
 export class AuthService {
   constructor(private jwtService: JwtService) {}
@@ -198,7 +199,7 @@ jsonwebtoken 의 단점은 내용에 따라 용량이 커질 가능성이 있다
 ```typescript
 export class AuthController {
   @UseGuards(LocalAuthGuard)
-  @Post('login')
+  @Post("login")
   async login() {
     return this.authService.login(req.user);
   }
@@ -222,7 +223,7 @@ export class AuthController {
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: ".env",
     }),
     // ...
   ],
@@ -252,8 +253,8 @@ auth.module.ts 에서 @nestjs/jwt 의 JwtModule 을 가져옵니다. 비밀 키�
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secretOrPrivateKey: configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: '1h' },
+        secretOrPrivateKey: configService.get("JWT_SECRET"),
+        signOptions: { expiresIn: "1h" },
       }),
       inject: [ConfigService],
     }),
@@ -276,7 +277,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const tokenLoginedAt = new Date(loginedAt).getTime();
     const userLoginedAt = new Date(user.loginedAt).getTime();
     if (tokenLoginedAt !== userLoginedAt) {
-      throw new UnauthorizedException('올바르지 않은 토큰입니다');
+      throw new UnauthorizedException("올바르지 않은 토큰입니다");
     }
     return { email, role, loginedAt };
   }
@@ -301,11 +302,11 @@ export class AuthModule {}
 마지막으로 JWT 전략을 수행할 가드를 만듭니다. 로컬 가드와 마찬가지로 특정 요청을 수행하기 전에 토큰을 검증하고, Request 객체에 유저 정보를 담게 됩니다.
 
 ```typescript
-import { Injectable } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { Injectable } from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {}
+export class JwtAuthGuard extends AuthGuard("jwt") {}
 ```
 
 완성입니다. 사용하려면 `@UseGuards(JwtAuthGuard)` 데코레이터를 컨트롤러 메소드 위에 선언하면 됩니다.

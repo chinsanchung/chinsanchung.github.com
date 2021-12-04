@@ -1,5 +1,5 @@
 ---
-title: '트위터의 일부 기능을 구현한 witter 제작기'
+title: "트위터의 일부 기능을 구현한 witter 제작기"
 layout: single
 author_profile: false
 read_time: false
@@ -11,7 +11,8 @@ categories:
 toc: true
 toc_sticky: true
 toc_labe: 목차
-description: 트위터의 일부 기능을 구현한 witter 애플리케이션을 제작하고 heroku 에 배포했던 경험을 적었습니다.
+description: 트위터의 일부 기능을 구현한 witter 애플리케이션을 제작하고 heroku 에 배포했던 경험을 정리합니다.
+excerpt: 트위터의 일부 기능을 구현한 witter 애플리케이션을 제작하고 heroku 에 배포했던 경험을 정리합니다.
 tags:
   - toy_project
 ---
@@ -49,39 +50,39 @@ const defaultSettingQuery = [
     $set: {
       create_date: {
         $dateToString: {
-          format: '%H:%M · %Y년 %m월 %d일',
-          timezone: '+09:00',
-          date: '$create_date',
+          format: "%H:%M · %Y년 %m월 %d일",
+          timezone: "+09:00",
+          date: "$create_date",
         },
       },
-      retweet_count: { $size: '$retweet' },
-      like_count: { $size: '$like' },
-      comments_count: { $size: '$comments' },
+      retweet_count: { $size: "$retweet" },
+      like_count: { $size: "$like" },
+      comments_count: { $size: "$comments" },
     },
   },
 ];
 const getUserInfoQuery = async (writer_id: string) => {
   return {
     $lookup: {
-      from: 'users',
+      from: "users",
       let: { writer_id: `$${writer_id}` },
       pipeline: [
-        { $match: { $expr: { $eq: ['$user_id', '$$writer_id'] } } },
+        { $match: { $expr: { $eq: ["$user_id", "$$writer_id"] } } },
         {
           $project: {
             _id: 0,
-            name: '$name',
-            user_id: '$user_id',
-            profile_color: '$profile_color',
-            description: '$description',
-            follower: '$follower',
-            following: '$following',
-            follower_count: { $size: '$follower' },
-            following_count: { $size: '$following' },
+            name: "$name",
+            user_id: "$user_id",
+            profile_color: "$profile_color",
+            description: "$description",
+            follower: "$follower",
+            following: "$following",
+            follower_count: { $size: "$follower" },
+            following_count: { $size: "$following" },
           },
         },
       ],
-      as: 'user',
+      as: "user",
     },
   };
 };
@@ -90,14 +91,14 @@ const getUserTimeLine = async (user_id) => {
   try {
     const response = await TimeLineModel.aggregate([
       { $match: { user_id } },
-      getUserInfoQuery('writer_id'),
+      getUserInfoQuery("writer_id"),
       defaultSettingQuery,
       // ...
     ]);
     if (response.length > 0) {
       return response;
     } else {
-      throw createError(404, '타임라인에 트윗이 없습니다.');
+      throw createError(404, "타임라인에 트윗이 없습니다.");
     }
   } catch (error) {
     throw error;
@@ -130,14 +131,14 @@ export default class ReadingService implements IReadingService {
     try {
       const response = await TimeLineModel.aggregate([
         { $match: { user_id } },
-        this.getUserInfoQuery('writer_id'),
+        this.getUserInfoQuery("writer_id"),
         this.defaultSettingQuery,
         // ...
       ]);
       if (response.length > 0) {
         return response;
       } else {
-        throw createError(404, '타임라인에 트윗이 없습니다.');
+        throw createError(404, "타임라인에 트윗이 없습니다.");
       }
     } catch (error) {
       throw error;
@@ -216,7 +217,7 @@ isAuthenticated() 는 `req.isAuthenticated()`로 실행하는데, 작동원리�
  * @api public
  */
 req.isAuthenticated = function () {
-  var property = this._userProperty || 'user';
+  var property = this._userProperty || "user";
   return this[property] ? true : false;
 };
 

@@ -1,5 +1,5 @@
 ---
-title: '원티드 프리온보딩 코스 세 번째 과제 후기'
+title: "원티드 프리온보딩 코스 세 번째 과제 후기"
 layout: single
 author_profile: false
 read_time: false
@@ -11,7 +11,8 @@ categories:
 toc: true
 toc_sticky: true
 toc_labe: 목차
-description: 프리온보딩 백엔드 코스의 세 번째 과제를 수행하면서 겪은 경험을 작성합니다.
+description: 레드브릭에서 제시해주신 게임 제작 및 출시 API 과제의 제작 과정을 정리합니다.
+excerpt: 레드브릭에서 제시해주신 게임 제작 및 출시 API 과제의 제작 과정을 정리합니다.
 tags:
   - 위코드
   - 원티드
@@ -25,8 +26,6 @@ tags:
 이번 프로젝트는 [레드브릭](https://wizschool.notion.site/wizschool/Redbrick-the-new-land-of-opportunity-f449bf0490f6468a8cb04ae3c96ed98b)에서 제시한 과제로, **레드브릭**은 누구나 쉽게 자신만의 소프트웨어를 창작할 수 있도록, 소프트웨어 창작 대중화를 꿈꾸는 기업입니다.
 
 ### 과제 안내
-
-주제는 게시글 API 를 만드는 것으로, 세부적인 사항은 아래와 같습니다.
 
 1. 필수 요구 사항
 
@@ -77,7 +76,7 @@ export class Project extends CoreEntity {
 
   @ManyToOne((_type) => User, (user) => user.projects, {
     eager: true,
-    onDelete: 'CASCADE',
+    onDelete: "CASCADE",
   })
   user: User;
 }
@@ -125,8 +124,8 @@ export class CoreEntity {
 
 ```typescript
 const data = await this.gameRepository
-  .createQueryBuilder('game')
-  .innerJoin('game.user', 'user')
+  .createQueryBuilder("game")
+  .innerJoin("game.user", "user")
   .where(`game.title like :keyword`, { keyword: `%${keyword}%` })
   .orWhere(`user.nickname like :keyword`, { keyword: `%${keyword}%` })
   .limit(limit)
@@ -223,9 +222,9 @@ export class ProjectsController {
 
 ```typescript
 export class ProjectsController {
-  @Post('/publish/:id')
+  @Post("/publish/:id")
   async publishProject(
-    @Param('id') id: string,
+    @Param("id") id: string,
     @Body() publishProjectDto: PublishProjectDto,
     @GetUser() user: User
   ): Promise<IPublishResponseMessage> {
@@ -244,10 +243,10 @@ export class ProjectsController {
         // ...
       }
       await queryRunner.commitTransaction();
-      return { message: 'publish complete' };
+      return { message: "publish complete" };
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      return { message: 'publish fail' };
+      return { message: "publish fail" };
     } finally {
       await queryRunner.release();
     }

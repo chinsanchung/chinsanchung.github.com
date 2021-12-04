@@ -1,5 +1,5 @@
 ---
-title: '원티드 프리온보딩 코스 다섯 번째 과제 후기'
+title: "원티드 프리온보딩 코스 다섯 번째 과제 후기"
 layout: single
 author_profile: false
 read_time: false
@@ -11,7 +11,8 @@ categories:
 toc: true
 toc_sticky: true
 toc_labe: 목차
-description: 프리온보딩 백엔드 코스의 다섯 번째 과제를 수행하면서 겪은 경험을 작성합니다.
+description: 휴먼스케이프에서 제시해주신 임상 정보 수집 및 조회 API 과제의 제작 과정을 정리합니다.
+excerpt: 휴먼스케이프에서 제시해주신 임상 정보 수집 및 조회 API 과제의 제작 과정을 정리합니다.
 tags:
   - 위코드
   - 원티드
@@ -26,7 +27,7 @@ tags:
 
 ### 과제 안내
 
-주제는 임상 정보를 수집하고 그것을 출력하는 API 제작입니다.
+주제는 임상 정보를 수집하고 그것을 조회하는 API 제작입니다.
 
 - 전부다 쌓는 API
 - 임상정보를 수집하는 batch task

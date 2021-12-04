@@ -1,5 +1,5 @@
 ---
-title: '원티드 프리온보딩 코스 여섯 번째 과제 후기'
+title: "원티드 프리온보딩 코스 여섯 번째 과제 후기"
 layout: single
 author_profile: false
 read_time: false
@@ -11,7 +11,8 @@ categories:
 toc: true
 toc_sticky: true
 toc_labe: 목차
-description: 프리온보딩 백엔드 코스의 여섯 번째 과제를 수행하면서 겪은 경험을 작성합니다.
+description: 디어코퍼레이션에서 제시해주신 킥보드 요금 계산 API 과제의 제작 과정을 정리합니다.
+excerpt: 디어코퍼레이션에서 제시해주신 킥보드 요금 계산 API 과제의 제작 과정을 정리합니다.
 tags:
   - 위코드
   - 원티드
