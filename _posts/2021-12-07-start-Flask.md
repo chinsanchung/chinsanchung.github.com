@@ -1,5 +1,5 @@
 ---
-title: 'Flask 초기 환경 설정'
+title: "Flask 초기 환경 설정"
 layout: single
 author_profile: false
 read_time: false
@@ -55,20 +55,19 @@ virtualenvwrapper 으로 배치 파일을 만들어 프로젝트에 필요한 �
 
 `sudo pip3 install virtualenvwrapper`으로 도구를 설치합니다.
 
-프로젝트 폴더에 가상 환경을 설정했기에 `/Users/username/Documents/Code/flask_project/venv/bin` 경로에 virtualenvwrapper.sh 파일을 작성합니다.(프로젝트의 경로는 임의로 설정하시면 됩니다.)
+프로젝트 폴더에 가상 환경을 설정했기에 "/Users/username/Documents/Code/flask_project/venv/bin" 경로에 virtualenvwrapper.sh 파일을 작성합니다.(프로젝트의 경로는 임의로 설정하시면 됩니다.)
+
+> 편의성을 위해 앞으로 `/Users/username/Documents/Code/flask_project` 을 `프로젝트 경로`라고 줄여서 작성하겠습니다.
 
 ```bash
 #!/bin/zsh
 
 cd /Users/username/Documents/Code/flask_project
-export FLASK_APP=test.py
-export FLASK_ENV=development
 source /Users/username/Documents/Code/flask_project/venv/bin/activate
 ```
 
-- `chmod a+x /Users/username/Documents/Code/flask_project/venv/bin/virtualenvwrapper.sh`을 터미널에 입력해 실행 권한을 부여합니다.
-  - 권한을 부여하지 않으면 "zsh: permission denied" 에러가 나옵니다.
-  - 그 다음 `source /Users/username/Documents/Code/flask_project/venv/bin/virtualenvwrapper.sh`을 터미널에 입력해 엔터를 누르면 virtualenvwrapper.sh 를 실행합니다.
+- `chmod a+x 프로젝트 경로/venv/bin/virtualenvwrapper.sh`을 터미널에 입력해 실행 권한을 부여합니다. ("zsh: permission denied" 에러를 방지합니다.)
+- 그 다음 `source 프로젝트 경로/venv/bin/virtualenvwrapper.sh`을 터미널에 입력해 엔터를 누르면 virtualenvwrapper.sh 를 실행합니다.
 
 ## 플라스크 설치하기
 
@@ -88,4 +87,9 @@ source /Users/username/Documents/Code/flask_project/venv/bin/activate
 - `export FLASK_APP=test.py`: FLASK_APP 환경 변수가 지정되지 않은 경우 자동으로 app.py를 기본 애플리케이션으로 인식합니다. 예시로 app.py 대신 test.py 를 기본 애플리케이션으로 하고 싶을 때 환경 변수로 입력합니다.
 - `export FLASK_ENV=development`: 개발 환경으로 설정해 디버그 모드를 활성화합니다.
 
-`source 파일 위치/virtualenvwrapper.sh`로 파일을 터미널에서 실행한 후 `flask run`을 입력하면 위의 명령을 적용하여 플라스크 앱을 실행합니다.
+virtualenvwrapper.sh 파일을 터미널에서 실행한 후 `flask run`을 입력하면 위의 명령을 적용하여 플라스크 앱을 실행합니다.
+
+## 참고 문서
+
+- [플라스크 문서 한글판](https://flask-docs-kr.readthedocs.io/ko/latest/)
+- [점프 투 플라스크](https://wikidocs.net/book/4542)
