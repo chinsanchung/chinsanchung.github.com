@@ -1,5 +1,5 @@
 ---
-title: "원티드 프리온보딩 코스 네 번째 과제 후기"
+title: '원티드 프리온보딩 코스 네 번째 과제 후기'
 layout: single
 author_profile: false
 read_time: false
@@ -77,7 +77,7 @@ export class Transaction {
   @Column()
   amount: number;
 
-  @Column({ default: "" })
+  @Column({ default: '' })
   comments: string;
 
   @Column({ default: 0 })
@@ -88,7 +88,7 @@ export class Transaction {
 
   @ManyToOne((_type) => Account, (account) => account.transactions, {
     eager: true,
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
   })
   account: Account;
 }
@@ -107,7 +107,7 @@ export class Account extends CoreEntity {
 
   @ManyToOne((_type) => User, (user) => user.accounts, {
     eager: false,
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
   })
   user: User;
 
@@ -128,16 +128,16 @@ export class Account extends CoreEntity {
 const account = await this.accountRepository.findOne({
   where: { acc_num: query.acc_num },
   join: {
-    alias: "account",
-    leftJoinAndSelect: { user: "account.user" },
+    alias: 'account',
+    leftJoinAndSelect: { user: 'account.user' },
   },
 });
 if (!account) {
-  throw new BadRequestException("거래 내역에 등록한 계좌가 존재하지 않습니다.");
+  throw new BadRequestException('거래 내역에 등록한 계좌가 존재하지 않습니다.');
 }
 if (account.user.user_id !== query.user.user_id) {
   throw new NotAcceptableException(
-    "오직 계좌의 소유주만 해당 계좌의 거래 내역을 조회하실 수 있습니다."
+    '오직 계좌의 소유주만 해당 계좌의 거래 내역을 조회하실 수 있습니다.'
   );
 }
 ```
@@ -201,22 +201,18 @@ if (account.user.user_id !== query.user.user_id) {
 
 각 과정을 차례대로 설명하겠습니다.
 
-- 특정 계좌 번호의 거래만을 가져오기
+##### 특정 계좌 번호의 거래만을 가져오기
 
 where 조건절으로 계좌 번호가 일치하는 거래 내역만을 불러옵니다.
 
 ```typescript
-where("account.acc_num = :acc_num", { acc_num });
+where('account.acc_num = :acc_num', { acc_num });
 ```
 
-- 거래일시
+##### 거래일시 계산
 
 typeorm, SQLite 에서 시간을 조건절에 넣으려면 `YYYY-MM-DD HH:mm:ss`형식으로 작성해야 합니다.
-그래서 요청의 날짜 쿼리 `startDate`, `endDate` 를 `YYYY-MM-DD` 형식으로 입력하도록 하는 한편, 반대로 날짜를 입력하지 않았을 경우도 고려했습니다. 입력하지 않을 때의 기본값을 3개월 전부터 오늘까지로 설정했습니다.
-
-이제 날짜를 문자열로 가공하고 3개월 전을 계산하는 작업이 필요했는데, 저는 [moment-timezone](https://momentjs.com/timezone/)을 사용했습니다. 시간의 가공을 편리하게 도와주는 패키지로, 특히 서버의 시간대를 기준으로 잡는 `new Date()` 대신 특정 지역의 시간대를 선택할 수 있어 자주 사용하고 있습니다.
-
-moment-timezone 을 이용해 시간을 계산하고 문자열로 변환하는 함수를 따로 만들어 사용했습니다.
+그래서 요청의 날짜 쿼리 `startDate`, `endDate` 를 `YYYY-MM-DD` 형식으로 입력하도록 하는 한편, 반대로 날짜를 입력하지 않았을 경우도 고려했습니다. 입력하지 않을 때의 기본값을 3개월 전부터 오늘까지로 설정했습니다. 시간을 계산하고 문자열 형식으로 변환하기 위해 [date-fns](https://date-fns.org/)을 사용했습니다.
 
 ```typescript
 private getDatePeriod(
@@ -224,43 +220,53 @@ private getDatePeriod(
   endDate: string | undefined,
 ): [string, string] {
   // * 처음과 마지막을 쿼리로 전달하지 않을 경우, 3개월 전부터 오늘까지를 기준으로 정합니다.
-  // moment-timezone: 서울 시간을 기준으로 하고, 3개월 전을 계산하기 위해 사용합니다.
   let startDateString = '';
   let endDateString = '';
+  const UTCZeroToday = subHours(
+    set(new Date(), {
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      milliseconds: 0,
+    }),
+    9,
+  );
   if (startDate) {
     startDateString = `${startDate} 00:00:00`;
   } else {
-    startDateString = moment()
-      .tz('Asia/Seoul')
-      .add(-3, 'month')
-      .set({ hour: 0, minute: 0, second: 0 })
-      .format('YYYY-MM-DD HH:mm:ss');
+    startDateString = format(subMonths(UTCZeroToday, 3), 'yyyy-MM-dd HH:mm:ss');
   }
   if (endDate) {
     endDateString = `${endDate} 23:59:59`;
   } else {
-    endDateString = moment()
-      .tz('Asia/Seoul')
-      .set({ hour: 23, minute: 59, second: 59 })
-      .format('YYYY-MM-DD HH:mm:ss');
+    const endDate = add(UTCZeroToday, {
+      hours: 23,
+      minutes: 59,
+      seconds: 59,
+    });
+    endDateString = format(endDate, 'yyyy-MM-dd HH:mm:ss');
   }
   return [startDateString, endDateString];
 }
 ```
 
-- 입급과 출금을 필터링하는 쿼리
+1. SQLite3 은 UTC+0 시간대를 기준으로 잡고 있습니다. 그에 맞춰 `UTCZeroToday` 변수의 값을 UTC+0 시간대로 변환한 오늘 날짜로 하고, 0시 0분 0초로 설정합니다.
+2. `UTCZeroToday`을 이용해 3개월 전의 날짜를 구하고 `format` 함수로 'yyyy-MM-dd HH:mm:ss' 형식의 문자열로 변환합니다.
+3. 마찬가지로, `UTCZeroToday`에 23시 59분 59초를 더해 오늘의 마지막 시간으로 설정한 후, 문자열로 변환합니다.
+
+##### 입급과 출금을 필터링하는 쿼리
 
 입금과 출금, 또는 둘 다 출력하기 위해선, 쿼리문을 두 개로 나눌 필요가 있었습니다. 왜냐면 모두 출력하는 where 조건절이 기존의 방식과 달리 `IN` 연산자를 사용하기 때문입니다.
 
 ```typescript
 let transTypeQuery: any = [
-  "transaction.trans_type = :trans_type",
+  'transaction.trans_type = :trans_type',
   { trans_type },
 ];
 if (!trans_type) {
   transTypeQuery = [
-    "transaction.trans_type IN (:...trans_type)",
-    { trans_type: ["in", "out"] },
+    'transaction.trans_type IN (:...trans_type)',
+    { trans_type: ['in', 'out'] },
   ];
 }
 ```
@@ -271,7 +277,7 @@ if (!trans_type) {
 andWhere(transTypeQuery[0], transTypeQuery[1]);
 ```
 
-- 특정 컬럼의 내용만을 출력하기
+##### 특정 컬럼의 내용만을 출력하기
 
 거래일시, 거래금액, 잔액, 거래종류, 적요를 출력해야 하는데 `select`를 이용해 특정 컬럼의 내용만을 출력할 수 있습니다.
 
