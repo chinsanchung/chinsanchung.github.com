@@ -1,5 +1,5 @@
 ---
-title: "Flask 초기 환경 설정"
+title: 'Flask 초기 환경 설정'
 layout: single
 author_profile: false
 read_time: false
@@ -88,6 +88,65 @@ source /Users/username/Documents/Code/flask_project/venv/bin/activate
 - `export FLASK_ENV=development`: 개발 환경으로 설정해 디버그 모드를 활성화합니다.
 
 virtualenvwrapper.sh 파일을 터미널에서 실행한 후 `flask run`을 입력하면 위의 명령을 적용하여 플라스크 앱을 실행합니다.
+
+## 데이터베이스 설정
+
+AWS RDS(MySQL)으로 해봅니다.
+
+### 에러
+
+- `No module named 'MySQLdb'`. [출처](https://i5on9i.blogspot.com/2020/05/no-module-named-mysqldb.html)에서 pymysql 을 설치해서 해결
+- AWS 서버 연결 타임아웃. -> 보안 그룹에 접속, 인바운드 규칙 수정: 유형 MYSQL/Aurora, 프로토콜 TCP, 포트 3306, 소스 사용자 지정에 0.0.0.0/0 -> 아웃바운드: 모든 트래픽, 사용자 지정에 0.0.0.0/0
+
+## 모델
+
+1. models.py 에 모델 작성하기.
+2. 플라스크의 migrate 로 데이터베이스 테이블 생성하기.
+
+`flask db init`을 최초로 실행하여 데이터베이스를 초기화 -> `flask db migrate` -> 데이터베이스 변경을 위한 리비전 파일 생성 -> `flask db upgrade` -> 리비전 파일 실행 -> .db 파일 생성.
+
+앞으로 새로운 모델을 만들 때마다 `flask db migrate`, `flask db upgrade`을 실행해서 db 파일을 갱신합니다.
+
+### 데이터 조회
+
+`>>> Question.query.filter(Question.subject.like('%플라스크%')).all()`
+
+[SQLAlchemy 공식 문서](https://docs.sqlalchemy.org/en/13/orm/query.html)
+
+## REST API 설정
+
+REST API 를 보다 편리하게 작업하기 위해 `flask_restx`를 설치합니다.
+
+### 컨트롤러 생성하기
+
+`@ns.route`로 URI 를 설정합니다. 참고로, 단일 URI 를 할 때는 빈 문자열을 입력해야 합니다.
+
+```python
+from flask import jsonify, make_response, json
+from flask_restx import Namespace, Resource, reqparse
+
+ns = Namespace("companies")
+
+@ns.route("")
+class GetList(Resource):
+    def get(self):
+      test_list = ['test']
+      return test_list
+```
+
+### 라우트 설정
+
+플라스크 app 에서 라우팅을 설정합니다.
+
+```python
+from flask import Flask
+from flask_restx import Api
+from .companies import companies_controller as company
+
+app = Flask(__name__)
+api = Api(app)
+api.add_namespace(company.ns, "/companies")
+```
 
 ## 참고 문서
 
