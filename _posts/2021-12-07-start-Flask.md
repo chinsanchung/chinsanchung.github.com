@@ -89,63 +89,220 @@ source /Users/username/Documents/Code/flask_project/venv/bin/activate
 
 virtualenvwrapper.sh 파일을 터미널에서 실행한 후 `flask run`을 입력하면 위의 명령을 적용하여 플라스크 앱을 실행합니다.
 
+## 기본 설정
+
+### 앱 만들기
+
+플라스트 앱 객체를 생성합니다. 다만, 전역 객체를 사용하지 않고 애플리케이션 팩토리를 사용하여 순환 참조 등의 에러를 방지합니다. (참조: [점프 투 플라스크 2-02](https://wikidocs.net/81504), [Flask Factory Pattern to set up your project.](https://itnext.io/flask-factory-pattern-to-setup-your-project-8fe7d6b23247))
+
+```python
+# app/__init__.py
+from flask import Flask
+
+def create_app():
+  app = Flask(__name__)
+
+  return app
+```
+
+`__name__`으로 애플리케이션 이름을 설정합니다. 애플리케이션으로 시작하는지, 아니면 모듈로 임포트하는지를 구분해야 하기 때문입니다.
+
+### 환경 변수 설정하기
+
+config.py 파일을 생성하고, 거기에 입력한 설정을 플라스크 앱에 등록합니다. 상세한 설정은 [설정 다루기](https://flask-docs-kr.readthedocs.io/ko/latest/config.html)에서 확인하실 수 있습니다.
+
+```python
+# config.py
+DEBUG = True
+SECRET_KEY = 'key'
+```
+
+```python
+import config
+
+# app/__init__.py
+def create_app():
+  app = Flask(__name__)
+  app.config.from_object(config)
+  # ...
+```
+
+**ENV 환경 변수 활용**
+
+AWS 등 외부 데이터베이스의 설정은 숨겨서 불러야 합니다. `pip install python-dotenv`로 python-dotenv 패키지를 설치하면 불러올 수 있습니다.
+
+```python
+# config.py
+import os
+from dotenv import load_dotenv
+
+load_dotenv(verbose=True)
+
+SECRET_KEY = os.getenv('SECRET_KEY')
+```
+
+`verbose=True`로 env 안의 값의 누락 여부를 경고로 띄울 수 있습니다. [참고](https://saurabh-kumar.com/python-dotenv/reference/dotenv/)
+
 ## 데이터베이스 설정
 
-AWS RDS(MySQL)으로 해봅니다.
+우선 SQLAlchemy 데이터베이스를 처리하도록 도와주는 Flask-Migrate 를 `pip install Flask-Migrate`으로 설치합니다.
 
-### 에러
+```python
+# config.py
 
-- `No module named 'MySQLdb'`. [출처](https://i5on9i.blogspot.com/2020/05/no-module-named-mysqldb.html)에서 pymysql 을 설치해서 해결
-- AWS 서버 연결 타임아웃. -> 보안 그룹에 접속, 인바운드 규칙 수정: 유형 MYSQL/Aurora, 프로토콜 TCP, 포트 3306, 소스 사용자 지정에 0.0.0.0/0 -> 아웃바운드: 모든 트래픽, 사용자 지정에 0.0.0.0/0
+## 1. SQLite3 일 경우
+import os
 
-## 모델
+BASE_DIR = os.path.dirname(__file__)
 
-1. models.py 에 모델 작성하기.
-2. 플라스크의 migrate 로 데이터베이스 테이블 생성하기.
+SQLALCHEMY_DATABASE_URI = 'sqlite:///{}'.format(os.path.join(BASE_DIR, 'database.db'))
+## 2, AWS RDS for MySQL 일 경우
+SQLALCHEMY_DATABASE_URI = (
+    "mysql+pymysql://{username}:{password}@{db_host}:{db_port}/{db_name}".format(
+        username=os.getenv("RDS_USERNAME"),
+        password=os.getenv("RDS_PASSWORD"),
+        db_host=os.getenv("RDS_HOST"),
+        db_port=os.getenv("RDS_PORT"),
+        db_name=os.getenv("RDS_DB_NAME"),
+    )
+)
+```
 
-`flask db init`을 최초로 실행하여 데이터베이스를 초기화 -> `flask db migrate` -> 데이터베이스 변경을 위한 리비전 파일 생성 -> `flask db upgrade` -> 리비전 파일 실행 -> .db 파일 생성.
+```python
+# app/__init__.py
+from flask import Flask
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+migrate = Migrate()
+
+def create_app():
+  db.init_app(app)
+  migrate.init_app(app, db)
+```
+
+### 모델
+
+models.py 에 모델 작성하기을 작성합니다. 데이터 타입은 [Column and Data Types](https://docs.sqlalchemy.org/en/14/core/type_basics.html)을 참고하시면 됩니다.
+
+```python
+from app import db
+
+class User(db.Model):
+  id = db.Column(db.Integer, primary_key=True)
+  email = db.Column(db.String(200), nullable=False)
+  password = db.Column(db.String(200), nullable=False)
+  created_at = db.Column(db.DateTime(), nullable=False)
+```
+
+모델을 기반으로 실제 데이터베이스를 생성합니다.
+
+1. `flask db init`을 최초로 실행하여 데이터베이스를 초기화.
+2. `flask db migrate` -> 데이터베이스 변경을 위한 리비전 파일 생성
+3. `flask db upgrade` -> 리비전 파일 실행 -> .db 파일 생성.
 
 앞으로 새로운 모델을 만들 때마다 `flask db migrate`, `flask db upgrade`을 실행해서 db 파일을 갱신합니다.
 
 ### 데이터 조회
 
-`>>> Question.query.filter(Question.subject.like('%플라스크%')).all()`
+작성 중입니다.
 
 [SQLAlchemy 공식 문서](https://docs.sqlalchemy.org/en/13/orm/query.html)
 
-## REST API 설정
+### 데이터 생성
 
-REST API 를 보다 편리하게 작업하기 위해 `flask_restx`를 설치합니다.
+예시로 유저를 생성하겠습니다.
+
+```python
+# users/users.service.ts
+import datetime import datetime
+from werkzeug.security import generate_password_hash
+from ..models import User
+from .. import db
+
+def create_user(args):
+  new_password = generate_password_hash(args.password)
+  new_user = User(
+    email=args.email,
+    password=new_password,
+    created_at=datetime.now()
+  )
+  db.session.add(new_user)
+  db.session.commit()
+
+  return new_user
+```
+
+`commit()`까지 완료해야 실제 데이터베이스에 입력한 정보를 저장합니다.
+
+## flask_restx 패키지로 REST API 설정하기
+
+REST API 를 제작하는 것을 돕는 flask_restx 패키지를 `pip install flask_restx`으로 설치합니다. 라우트 설정, 요청 값을 검증하고 가져오는 일 등 다양한 작업을 할 수 있습니다.
 
 ### 컨트롤러 생성하기
 
-`@ns.route`로 URI 를 설정합니다. 참고로, 단일 URI 를 할 때는 빈 문자열을 입력해야 합니다.
+`@ns.route`로 URI 를 설정합니다. 참고로, 단일 URI 를 할 때는 빈 문자열을 입력해야 합니다. 그러지 않으면 아래와 같은 에러가 발생합니다.
+
+> The URL was defined with a trailing slash so Flask will automatically redirect to the URL with the trailing slash if it was accessed without one.
 
 ```python
+# app/users/users_controller.ts
+
 from flask import jsonify, make_response, json
 from flask_restx import Namespace, Resource, reqparse
+from .users_service import UsersService
 
-ns = Namespace("companies")
+ns = Namespace("users")
 
 @ns.route("")
-class GetList(Resource):
-    def get(self):
-      test_list = ['test']
+class CreateUser(Resource):
+    def __init__(self, *args, **kwargs):
+      super().__init__(*args, **kwargs)
+      self.service = UsersService()
+
+    def post(self):
+      parser = reqparse.RequestParser()
+      parser.add_argument('email', type=str)
+      parser.add_argument('password', type=str)
+      args = parser.parse_args()
+
+      new_user = service.create_user(args)
       return test_list
+
 ```
+
+여기서 가장 눈여겨볼 것은 `parser`입니다. 플라스크의 Request 객체의 값에 접근하기 위해 사용합니다. `parser.add_argument()`으로 어떤 값을 찾아와야 하는지를 미리 설정해야합니다.
 
 ### 라우트 설정
 
-플라스크 app 에서 라우팅을 설정합니다.
+플라스크 앱에서 라우팅을 설정합니다.
 
 ```python
+# app/__init__.py
+
 from flask import Flask
 from flask_restx import Api
-from .companies import companies_controller as company
 
-app = Flask(__name__)
-api = Api(app)
-api.add_namespace(company.ns, "/companies")
+def create_app():
+    app = Flask(__name__)
+    app.debug = True
+    app.config.from_object(config)
+
+    # ORM
+    db.init_app(app)
+    migrate.init_app(app, db)
+    from . import models
+
+    # flask_restx
+    api = Api(app)
+
+
+    from .users import users_controller as user
+
+    api.add_namespace(user.ns, "/users")
+
+    return app
 ```
 
 ## 참고 문서
