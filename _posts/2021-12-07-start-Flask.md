@@ -1,5 +1,5 @@
 ---
-title: 'Flask 초기 환경 설정'
+title: "Flask 초기 환경 설정"
 layout: single
 author_profile: false
 read_time: false
@@ -206,9 +206,81 @@ class User(db.Model):
 
 ### 데이터 조회
 
-작성 중입니다.
-
 [SQLAlchemy 공식 문서](https://docs.sqlalchemy.org/en/13/orm/query.html)
+
+#### 1. 특정 키워드로 검색하기
+
+`filter`, `filter_by` 두 메소드로 검색할 수 있습니다. `filter_by`는 컬럼의 이름을 인자로 바로 입력할 수 있고, `filter`는 다양한 조건을 추가할 수 있습니다.
+
+```python
+# filter_by
+User.query.filter_by(email='test@gmail.com').all()
+# filter
+User.query.filter(User.email == 'test@gmail.com').all()
+```
+
+`like`를 추가하여 일부 문자열이 들어간 값도 조회할 수 있습니다.
+
+```python
+User.query.filter(User.email.like('%{}%'.format('test')))
+```
+
+join 으로 두 테이블을 합친 후에 검색할 수 있습니다. 예시로 게시글 제목에 get 이 들어가는 동시에 유저의 아이디가 10인 게시글을 검색합니다.
+
+```python
+Board.query.join(User).filter(
+  User.id == 10),
+  Board.title.like('%{}%'.format('get'))
+).all()
+```
+
+마지막의 `all()`, `first()` 메소드는 전체를 보여줄 것인지, 아니면 그 중 하나만을 보여줄 것인지를 설정합니다. 만약 특정한 한 개만 조회하는 것이라면 `first()`를 사용합니다.
+
+#### 2. 목록 조회하기
+
+이번에는 pagination 기능을 포함하여 게시글 목록을 조회합니다.
+
+```python
+page = args['page']
+board_list = Board.query.order_by(Board.create_date.desc())
+board_list = board_list.paginate(page, per_page=10)
+```
+
+게시글의 작성일에 대한 내림차순으로 정렬하고, `paginate`를 이용해 특정 페이지의 목록을 가져옵니다.
+
+#### 데이터를 클라이언트로 전송하기 위한 변환 과정
+
+주의할 점은, 처음 `all()`, `first()`로 얻은 결과는 딕셔너리가 아닌 SQLAlchemy 타입입니다. 이 타입 그대로 응답으로 보낼 경우 `Object of type Board is not JSON serializable` 에러가 발생합니다.
+
+또한, SQLAlchemy 형식의 데이터에서 특정 컬럼의 값을 가져오려고 할 떄도 `Board object is not subscriptable` 에러가 발생합니다.
+
+```python
+board = Board.query.filter(Board.title.like('%{}%'.format('one')))
+# created_at 컬럼의 값을 조회할 때 에러가 발생합니다.
+print(board.created_at)
+```
+
+이것을 해결하기 위해 데이터의 타입을 딕셔너리로 변경할 필요가 있습니다. stack overflow ["How to convert SQLAlchemy row object to a Python dict?"](https://stackoverflow.com/a/1960546)을 참고했습니다.
+
+```python
+board_dict = dict()
+
+for column in board.__table__.columns:
+  dict[column.name] = getattr(board, column.name)
+```
+
+만일 목록일 경우, 반복문을 두 번 반복하여 딕셔너리로 만든 게시글을 리스트에 추가합니다.
+
+```python
+result = list()
+for board in board_list:
+    board_dict = dict()
+    for column in board.__table__.columns:
+        board_dict[column.name] = getattr(board, column.name)
+    result.append(board_dict)
+```
+
+`getattr` 함수로 board 객체로부터 column.name 속성의 값을 구하고, 임의의 딕셔너리에 저장합니다.
 
 ### 데이터 생성
 
