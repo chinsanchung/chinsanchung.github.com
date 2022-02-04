@@ -10,3 +10,5 @@ main:
     url: /review/
   - title: "Experience"
     url: /experience/
+  - title: "Study"
+    url: /study/
