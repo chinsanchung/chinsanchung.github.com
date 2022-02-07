@@ -82,6 +82,8 @@ function statement(invoice, plays) {
 }
 ```
 
+{:start='2'}
+
 2. **변수 인라인하기**
 
 ```javascript
@@ -95,6 +97,8 @@ function statement(invoice, plays) {
   // ...
 }
 ```
+
+{:start='3'}
 
 3. **함수 선언 바꾸기**
 
@@ -114,7 +118,11 @@ function statement(invoice, plays) {
 }
 ```
 
+{:start='4'}
+
 4. 그리고 play 매개변수를 삭제합니다.
+
+{:start='5'}
 
 5. `amountFor()`를 받는 thisAmount 를 제거하고 **변수 인라인하기**를 적용합니다.
 
@@ -229,6 +237,8 @@ function statement(invoice, plays) {
 }
 ```
 
+{:start='2'}
+
 2. 문장 슬라이드하기
 
 이어서 **문장 슬라이드**로 volumeCredits 변수의 선언을 반복문 바로 앞으로 옮깁니다. 저는 이전의 변수 선언은 최상위로 배치하고, 연산을 그 아래에 작성했는데 지금의 방식이 흐름을 이해하기에 더 수월하다고 생각합니다.
@@ -244,6 +254,8 @@ function statement(invoice, plays) {
   // ...
 }
 ```
+
+{:start='3'}
 
 3. 함수 추출하기
 
@@ -261,6 +273,8 @@ function statement(invoice, plays) {
   // ...
 }
 ```
+
+{:start='4'}
 
 4. 변수 인라인하기
 
@@ -322,7 +336,7 @@ function statement(invoice, plays) {
 }
 ```
 
-### 1.7 계산 단계와 포맷팅 단계 분리하기
+### 1.6 계산 단계와 포맷팅 단계 분리하기
 
 이제 statement() 함수의 HTML 버전을 만들어봅니다. 문제는 최상단 코드만 HTML 로 변환하면 되는데, 분리한 계산 함수가 중첩 함수로 들어 있습니다.
 
@@ -355,6 +369,8 @@ function renderPlainText(invoice, plays) {
   function amountFor(aPerformance) {}
 }
 ```
+
+{:start='2'}
 
 2. 두 단계 사이의 중간 데이터 구조 역할을 하는 객체를 만들어 renderPlainText() 에 인수로 전달합니다.
 
@@ -403,6 +419,8 @@ function statement(invoice, plays) {
 ```
 
 `Object.assign`으로 공연 객체를 복사한 이유는 함수로 건넨 데이터 `aPerformance`를 수정하지 않기 위해서입니다. 저자는 데이터를 최대한 불변으로 취급한다고 합니다.
+
+{:start='3'}
 
 3. 실제 데이터를 담아봅니다.
 
@@ -484,6 +502,8 @@ function renderPlainText(data, plays) {
 }
 ```
 
+{:start='4'}
+
 4. 첫 단계인 "statment()에 필요한 데이터 처리"에 해당하는 코드를 모두 별도 함수로 뺍니다.
 
 ```js
@@ -514,6 +534,8 @@ export default function createStatementData(invoice, plays) {
   function totalVolumeCredits(data) {}
 }
 ```
+
+{:start='5'}
 
 5. 마지막으로 HTML 버전을 작성합니다.
 
@@ -552,7 +574,7 @@ amountFor()의 조건부 로직(연극 장르에 따라 계산 방식이 다름)
 
 상속 계층부터 정의합니다. (공연료와 적립 포인트 계산 함수를 담을 클래스가 필요합니다.)
 
-#### 1. 공연료 계산기 만들기
+1. 공연료 계산기 만들기
 
 enrichPerformance() 함수의 amountFor(), volumeCreditsFor()를 전용 클래스 `PerformanceCalculator`로 옮깁니다.
 
@@ -581,7 +603,9 @@ class PerformanceCalculator {
 }
 ```
 
-#### 2. 함수들을 계산기로 옮기기
+{:start='2'}
+
+2. 함수들을 계산기로 옮기기
 
 **함수 옮기기** 리팩터링을 단계별로 진행합니다. 우선 공연료 계산 코드를 클래스 안으로 복사합니다.
 
@@ -638,7 +662,9 @@ class PerformanceCalculator {
 }
 ```
 
-#### 3. 공연료 계산기를 다형성 버전으로 만들기
+{:start='3'}
+
+3. 공연료 계산기를 다형성 버전으로 만들기
 
 타입 코드 대신 서브클래스로 사용하도록 변경합니다. (**타입 코드를 서브클래스로 바꾸기**) PerformanceCalculator 의 서브클래스를 사용하게 만들고, 서브클래스를 사용하기 위해 생성자 함수 대신 함수를 호출하도록 바꿔야 합니다. (자바스크립트는 생정자가 서브클래스의 인스턴스를 반환할 수 없다고 합니다. 그래서 **생성자를 팩토리 함수로 바꾸기**를 적용합니다.)
 
