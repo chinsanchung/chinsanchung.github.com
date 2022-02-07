@@ -539,3 +539,139 @@ function usd(aNumber) {}
 코드량은 늘어났지만, 그 덕분에 전체 로직의 요소를 뚜렷하게 구분하고 계산과 출력을 분리할 수 있었습니다. 무조건 간결하게만 압축하는 것을 생각했는데, 저자가 말한대로 간결함보다는 명료함을 더 중시해아 한다는 것을 위의 코드를 통해 이해하게 되었습니다.
 
 > 모듈화하면 각 부분이 하는 일과 그 부분들이 맞물려 돌아가는 과정을 파악하기 쉬워진다. - p.63
+
+### 1.8 다형성으로 계산 코드 재구성하기
+
+연극 장르를 추가하고 장르마다 공연료와 적립 포인트 계산을 다르게 지정합니다.
+
+amountFor()의 조건부 로직(연극 장르에 따라 계산 방식이 다름)은 코드를 수정할수록 대응하기 어려워집니다. 저자는 객체지향의 핵심 특성인 다형성을 활용합니다.
+
+목표는 상속 계층을 구성해서 각 서브클래스가 각자의 구체적인 계산 로직을 정의하는 것입니다. 여기서 핵심적으로 사용하는 리팩터링 기법이 **조건부 로직을 다형성으로 바꾸기**입니다.
+
+---
+
+상속 계층부터 정의합니다. (공연료와 적립 포인트 계산 함수를 담을 클래스가 필요합니다.)
+
+#### 1. 공연료 계산기 만들기
+
+enrichPerformance() 함수의 amountFor(), volumeCreditsFor()를 전용 클래스 `PerformanceCalculator`로 옮깁니다.
+
+우선 연극 레코드부터 시작합니다. 클래스의 생성자에 **함수 선언 바꾸기**를 적용하여 공연할 연극을 계산기로 전달합니다.
+
+```js
+export default function createStatementData(invoice, plays) {
+  function enrichPerformance(aPerformance) {
+    const calculator = new PerformanceCalculator(
+      aPerformance,
+      playFor(aPerformance)
+    );
+    const result = Object.assign({}, aPerformance);
+    result.play = calculator.play;
+    result.amount = amountFor(result);
+    result.volumeCredits = volumeCreditsFor(result);
+    return result;
+  }
+}
+
+class PerformanceCalculator {
+  constructor(aPerformance, aPlay) {
+    this.performance = aPerformance;
+    this.play = aPlay;
+  }
+}
+```
+
+#### 2. 함수들을 계산기로 옮기기
+
+**함수 옮기기** 리팩터링을 단계별로 진행합니다. 우선 공연료 계산 코드를 클래스 안으로 복사합니다.
+
+```js
+class PerformanceCalculator {
+  constructor(aPerformance, aPlay) {
+    this.performance = aPerformance;
+    this.play = aPlay;
+  }
+
+  // amountFor() 함수를 복사한 것입니다.
+  get amount() {
+    // aPerformance.audience -> this.performance 로 수정합니다.
+    // aPerformance.play -> this.play 로 수정합니다.
+  }
+}
+```
+
+에러를 확인한 후, 원본 함수의 작업을 위임합니다.
+
+```js
+function amountFor(aPerformance) {
+  return new PerformanceCalculator(aPerformance, playFor(aPerformance)).amount;
+}
+```
+
+그리고 원래의 **함수를 인라인**하여 새 함수를 직접 호출하도록 합니다. 적립 포인트를 계산하는 함수도 같은 방법으로 옮깁니다.
+
+```js
+export default function createStatementData(invoice, plays) {
+  function enrichPerformance(aPerformance) {
+    const calculator = new PerformanceCalculator(
+      aPerformance,
+      playFor(aPerformance)
+    );
+    const result = Object.assign({}, aPerformance);
+    result.play = calculator.play;
+    result.amount = calculator.amount;
+    result.volumeCredits = calculator.volumeCredits;
+    // ...
+  }
+}
+
+class PerformanceCalculator {
+  constructor(aPerformance, aPlay) {
+    this.performance = aPerformance;
+    this.play = aPlay;
+  }
+
+  // volumeCreditsFor() 함수를 복사한 것입니다.
+  get volumeCredits() {
+    // aPerformance -> this.performance 로 수정합니다.
+  }
+}
+```
+
+#### 3. 공연료 계산기를 다형성 버전으로 만들기
+
+타입 코드 대신 서브클래스로 사용하도록 변경합니다. (**타입 코드를 서브클래스로 바꾸기**) PerformanceCalculator 의 서브클래스를 사용하게 만들고, 서브클래스를 사용하기 위해 생성자 함수 대신 함수를 호출하도록 바꿔야 합니다. (자바스크립트는 생정자가 서브클래스의 인스턴스를 반환할 수 없다고 합니다. 그래서 **생성자를 팩토리 함수로 바꾸기**를 적용합니다.)
+
+```js
+export default function createStatementData(invoice, plays) {
+  function enrichPerformance(aPerformance) {
+    const calculator = createPerformanceCalculator(
+      aPerformance,
+      playFor(aPerformance)
+    );
+    // ...
+  }
+}
+
+function createPerformanceCalculator(aPerformance, aPlay) {
+  return new PerformanceCalculator(aPerformance, aPlay);
+}
+```
+
+함수 형식으로 하면 서브클래스를 선택해서 반환할 수 있습니다.
+
+```js
+function createPerformanceCalculator(aPerformance, aPlay) {
+  switch (aPlay.type) {
+    case "tragedy":
+      return new TragedyCalculator(aPerformance, aPlay);
+    case "comedy":
+      return new ComedyCalculator(aPerformance, aPlay);
+    default:
+      throw new Error("알 수 없는 장르");
+  }
+}
+
+class TragedyCalculator extends PerformanceCalculator {}
+class ComedyCalculator extends PerformanceCalculator {}
+```
