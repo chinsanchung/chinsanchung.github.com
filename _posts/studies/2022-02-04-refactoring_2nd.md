@@ -600,7 +600,7 @@ class PerformanceCalculator {
 }
 ```
 
-에러를 확인한 후, 원본 함수의 작업을 위임합니다.
+컴파일-테스트-커밋 이후, 원본 함수의 작업을 위임합니다.
 
 ```js
 function amountFor(aPerformance) {
@@ -675,3 +675,42 @@ function createPerformanceCalculator(aPerformance, aPlay) {
 class TragedyCalculator extends PerformanceCalculator {}
 class ComedyCalculator extends PerformanceCalculator {}
 ```
+
+**조건부 로직을 다형성으로 바꾸기**를 적용합니다. 슈퍼클래스 PerformanceCalculator 의 `get amount()`를 서브클래스로 옮기고, 슈퍼클래스의 함수는 에러 처리를 합니다.
+
+```js
+class PerformanceCalculator {
+  // ...
+  get amount() {
+    throw new Error("subclass responsiblity");
+  }
+}
+
+class TragedyCalculator extends PerformanceCalculator {
+  get amount() {}
+}
+class ComedyCalculator extends PerformanceCalculator {
+  get amount() {}
+}
+```
+
+volumeCredits() 의 경우 일부 장르만 약간 다르고 대다수는 관객 수를 검사하는데, 일반적인 경우를 슈퍼클래스에 놓고 달라지는 부분은 오버라이드합니다.
+
+```js
+class PerformanceCalculator {
+  // ...
+  get volumeCredits() {
+    return Math.max(this.performance.audience - 30, 0);
+  }
+}
+
+class ComedyCalculator extends PerformanceCalculator {
+  get volumeCredits() {
+    return super.volumeCredits + Math.floor(this.performance.audience / 5);
+  }
+}
+```
+
+### 1.9 상태 점검: 다형성을 활용하여 데이터 생성하기
+
+이전과의 차이점은 장르별 계산 코드를 함께 묶어뒀기 때문에, 만약 새로운 장르를 추가한다면 createPerformanceCalculator() 에 새로운 조건문을 추가하고 새로운 서브클래스를 작성하면 됩니다. 슈퍼클래스, 서브클래스, 그리고 팩토리 함수를 이용해 다형성을 구현하는 것을 보고, 조건부 로직을 구현하는 방법을 이렇게 구현할 수 있다는 것을 알았습니다.
